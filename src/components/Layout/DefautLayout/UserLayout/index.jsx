@@ -10,7 +10,7 @@ function UserLayout({ children }) {
     return (
         <div className='font-Montserrat'>
             {!hideHeaderAndFooter && <Header />}
-            <div className='mx-2 xl:mx-20'>
+            <div className='mx-0'>
                 {children}
             </div>
             {!hideHeaderAndFooter && <Footer />}

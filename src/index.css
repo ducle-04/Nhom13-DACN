@@ -1,12 +1,42 @@
 @import 'slick-carousel/slick/slick.css';
 @import 'slick-carousel/slick/slick-theme.css';
 
-/* Custom font */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
 body {
-    font-family: 'Poppins', sans-serif;
+    @apply font-poppins bg-gray-50 text-gray-900 leading-relaxed text-base;
+    scroll-behavior: smooth;
 }
 
-/* Optional custom animation */
+/* Reset styles */
+* {
+    @apply m-0 p-0 box-border;
+}
+
+/* Slider styles */
+.slick-slider,
+.slick-list,
+.slick-track {
+    @apply w-full h-full;
+}
+
+.slick-slide img {
+    @apply w-full h-full object-cover;
+}
+
+/* Quảng cáo full-width */
+.advertisement-fullwidth img {
+    @apply w-full object-cover;
+}
+
+/* Hiệu ứng fade-in */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -19,10 +49,27 @@ body {
     }
 }
 
-.fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-}
+/* Responsive adjustments */
+@media (max-width: 640px) {
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+    .slick-slide img,
+    .advertisement-fullwidth img {
+        @apply h-[70vh];
+    }
+
+    .text-4xl {
+        @apply text-3xl;
+    }
+
+    .text-2xl {
+        @apply text-xl;
+    }
+
+    .text-lg {
+        @apply text-base;
+    }
+
+    .text-base {
+        @apply text-sm;
+    }
+}
