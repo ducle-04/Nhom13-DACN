@@ -8,6 +8,7 @@ import featuredProducts from '../../../data/featuredProducts';
 import newProducts from '../../../data/newProducts';
 import bestSellingProducts from '../../../data/bestSellingProducts';
 
+
 function Menu() {
     const allProducts = [
         ...promotions,
@@ -77,17 +78,24 @@ function Menu() {
     };
 
     return (
-        <div className="w-full min-h-screen bg-gray-50">
+        <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50">
             <motion.section
-                className="py-12 bg-white shadow-md"
+                className="py-12 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 shadow-md "
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.3 }}
                 variants={sectionVariants}
             >
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                    <span className="text-orange-600 font-medium text-sm tracking-[0.2em] uppercase">
+                        Tuyển chọn hấp dẫn
+                    </span>
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                </div>
                 <div className="container mx-auto px-4 text-center">
-                    <h1 className="text-4xl font-bold text-gray-900 font-montserrat mb-4">Thực Đơn</h1>
-                    <p className="text-lg text-gray-600">Khám phá tất cả món ăn ngon tại FoodieHub</p>
+                    <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-6 font-montserrat tracking-tight leading-snug">Thực Đơn</h1>
+                    <p className="text-slate-600 text-xl text-center max-w-3xl mb-6 mx-auto leading-relaxed">Khám phá những món ăn tuyệt vời được chế biến với tình yêu và sự tận tâm tại FoodieHub</p>
                 </div>
             </motion.section>
 
@@ -116,28 +124,29 @@ function Menu() {
                                                 -{discount}%
                                             </div>
                                         )}
+                                        <div className="w-0 h-1 bg-gradient-to-r from-orange-400 to-amber-400 mx-auto group-hover:w-full transition-all duration-500 rounded-full"></div>
                                         <motion.img
                                             src={product.img}
                                             alt={product.name}
-                                            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                                            className="w-full h-48 object-cover transition-transform duration-300"
                                             loading="lazy"
                                         />
                                         <div className="p-4 text-center">
-                                            <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-3 transition-all duration-300 group-hover:text-amber-600 group-hover:-translate-y-1">{product.name}</h3>
                                             <div className="flex justify-center items-center mb-2">
                                                 <span className="text-yellow-500">★★★★☆</span>
                                             </div>
                                             <div className="flex justify-center items-baseline space-x-2 mb-2">
-                                                <p className="text-gray-500 line-through text-sm">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
+                                                <p className="text-gray-500 line-through text-sm ">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
                                                 <p className="text-red-500 font-bold text-lg">{parseInt(product.discountedPrice).toLocaleString('vi-VN')}đ</p>
                                             </div>
-                                            <Link
-                                                to="/cart"
+                                            <button
+                                                onClick={() => addToCart({ id: index + 1, name: product.name, price: parseInt(product.discountedPrice), quantity: 1, image: product.img })}
                                                 className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-full font-medium hover:bg-orange-600 transition-colors duration-200"
                                             >
                                                 <ShoppingCart className="w-5 h-5 mr-2" />
                                                 Đặt ngay
-                                            </Link>
+                                            </button>
                                         </div>
                                     </motion.div>
                                 );
@@ -147,7 +156,7 @@ function Menu() {
                 </motion.section>
 
                 <motion.aside
-                    className="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg h-[500px] overflow-y-auto"
+                    className="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg h-[500px] overflow-hidden" // Cố định chiều cao 500px, không có thanh cuộn
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.3 }}

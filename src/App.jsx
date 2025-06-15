@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import { PublicPage } from './pages';
+import { PublicPage, } from './pages';
 import ScrollToTop from './components/OtherComponent/ScrollToTop';
 
 function App() {

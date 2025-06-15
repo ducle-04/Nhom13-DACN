@@ -10,14 +10,14 @@ const promotions = [
         name: 'Pizza Hải Sản',
         originalPrice: 187500,
         discountedPrice: 150000,
-        img: '/images/pizza-hai-san.jpg',
+        img: '/images/Product/pizza-hai-san.jpg',
         discount: 'Giảm 20%',
     },
     {
         name: 'Mỳ Ý Bò Bằm',
         originalPrice: 88000,
         discountedPrice: 80000,
-        img: '/images/my-y-bo-bam.jpg',
+        img: '/images/Product/my-y-bo-bam.jpg',
         discount: 'Giảm 10%',
     },
 ];

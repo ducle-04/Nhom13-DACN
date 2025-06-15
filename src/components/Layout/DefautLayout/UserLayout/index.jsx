@@ -9,11 +9,11 @@ function UserLayout({ children }) {
 
     return (
         <div className='font-Montserrat'>
-            {!hideHeaderAndFooter && <Header />}
-            <div className='mx-0'>
+            <Header />
+            <main className='min-h-screen'>
                 {children}
-            </div>
-            {!hideHeaderAndFooter && <Footer />}
+            </main>
+            <Footer />
         </div>
     );
 }

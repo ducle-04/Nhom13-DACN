@@ -1,0 +1,154 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
+
+function Cart({ isOpen, onClose }) {
+    // Dữ liệu giả cho giỏ hàng (có thể thay bằng API hoặc context)
+    const [cartItems, setCartItems] = useState([
+        { id: 1, name: 'Pizza Margherita', price: 150000, quantity: 2, image: '/images/pizza.jpg' },
+        { id: 2, name: 'Mỳ Ý Carbonara', price: 120000, quantity: 1, image: '/images/my-y.jpg' },
+    ]);
+
+    // Tính tổng giá
+    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+
+    // Xóa món hàng
+    const removeItem = (id) => {
+        setCartItems(cartItems.filter((item) => item.id !== id));
+    };
+
+    // Cập nhật số lượng
+    const updateQuantity = (id, delta) => {
+        setCartItems(
+            cartItems.map((item) =>
+                item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
+            )
+        );
+    };
+
+    // Animation variants cho overlay
+    const overlayVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.3 } },
+    };
+
+    // Animation variants cho sidebar
+    const sidebarVariants = {
+        hidden: { x: '100%' },
+        visible: { x: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Overlay nền mờ */}
+                    <motion.div
+                        className="fixed inset-0 bg-black/50 z-50"
+                        variants={overlayVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        onClick={onClose}
+                    />
+
+                    {/* Sidebar giỏ hàng */}
+                    <motion.div
+                        className="fixed top-0 right-0 h-full w-full max-w-md bg-white/10 backdrop-blur-xl border-l border-white/20 z-50 p-6 flex flex-col"
+                        variants={sidebarVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                    >
+                        {/* Tiêu đề và nút đóng */}
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">
+                                Giỏ Hàng
+                            </h2>
+                            <button
+                                onClick={onClose}
+                                className="text-gray-600 hover:text-gray-800"
+                                aria-label="Đóng giỏ hàng"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Danh sách món hàng */}
+                        {cartItems.length === 0 ? (
+                            <p className="text-gray-600 text-center py-10">Giỏ hàng của bạn đang trống.</p>
+                        ) : (
+                            <div className="flex-1 overflow-y-auto space-y-4">
+                                {cartItems.map((item) => (
+                                    <motion.div
+                                        key={item.id}
+                                        className="flex items-center space-x-4 bg-white/20 rounded-lg p-4"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <img
+                                            src={item.image}
+                                            alt={item.name}
+                                            className="w-16 h-16 object-cover rounded-lg"
+                                            loading="lazy"
+                                        />
+                                        <div className="flex-1">
+                                            <h3 className="text-gray-800 font-semibold">{item.name}</h3>
+                                            <p className="text-gray-600">
+                                                {(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => updateQuantity(item.id, -1)}
+                                                className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                                                aria-label="Giảm số lượng"
+                                            >
+                                                -
+                                            </button>
+                                            <span className="text-gray-800">{item.quantity}</span>
+                                            <button
+                                                onClick={() => updateQuantity(item.id, 1)}
+                                                className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                                                aria-label="Tăng số lượng"
+                                            >
+                                                +
+                                            </button>
+                                            <button
+                                                onClick={() => removeItem(item.id)}
+                                                className="text-red-500 hover:text-red-700"
+                                                aria-label={`Xóa ${item.name}`}
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Tổng giá và nút thanh toán */}
+                        {cartItems.length > 0 && (
+                            <div className="mt-6 border-t border-gray-200 pt-4">
+                                <div className="flex justify-between text-lg font-semibold text-gray-800">
+                                    <span>Tổng cộng:</span>
+                                    <span>{totalPrice.toLocaleString('vi-VN')} VNĐ</span>
+                                </div>
+                                <motion.button
+                                    className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Thanh Toán
+                                </motion.button>
+                            </div>
+                        )}
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+}
+
+export default Cart;
