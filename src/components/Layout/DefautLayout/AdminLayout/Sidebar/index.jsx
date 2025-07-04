@@ -13,7 +13,7 @@ function Sidebar() {
     return (
         <aside className="admin-sidebar bg-gray-900 text-white h-screen flex flex-col p-0" style={{ width: 320 }}>
             <div className="sidebar-logo flex items-center justify-center py-4 border-b border-gray-700">
-                <span className="logo-text font-bold text-xl text-blue-400">FoobHub Admin</span>
+                <span className="logo-text font-bold text-xl text-blue-400">FooiebHub Admin</span>
             </div>
             <nav className="sidebar-menu flex-grow">
                 <ul className="flex flex-col mt-3">

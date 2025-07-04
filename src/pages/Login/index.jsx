@@ -67,7 +67,7 @@ function Login() {
                 timeout: 5000,
             });
 
-            // Lấy token từ response (dạng chuỗi hoặc object)
+            // Lấy token từ response 
             const token = typeof response.data === 'string' ? response.data : response.data.token;
             localStorage.setItem('token', token);
 

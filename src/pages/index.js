@@ -10,6 +10,7 @@ import AdminLayout from "../components/Layout/DefautLayout/AdminLayout";
 
 import AdminDashboard from "./Admin/Dashboard";
 import UserManager from "./Admin/UserManager";
+import ProductManager from "./Admin/ProductManager";
 
 const PrivatePage = [
 
@@ -26,6 +27,8 @@ const PublicPage = [
 
     { path: "/admin", component: AdminDashboard, layout: AdminLayout },
     { path: "/admin/user", component: UserManager, layout: AdminLayout },
+    { path: "/admin/products", component: ProductManager, layout: AdminLayout },
+
 
 ];
 const isAuthenticated = () => {
