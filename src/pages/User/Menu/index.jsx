@@ -2,32 +2,53 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import menuCategories from '../../../data/menuCategories';
-import promotions from '../../../data/promotions';
-import featuredProducts from '../../../data/featuredProducts';
-import newProducts from '../../../data/newProducts';
-import bestSellingProducts from '../../../data/bestSellingProducts';
-
 
 function Menu() {
-    const allProducts = [
-        ...promotions,
-        ...featuredProducts,
-        ...newProducts,
-        ...bestSellingProducts,
-    ];
-
+    const [products, setProducts] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('Tất cả');
     const [selectedPriceRange, setSelectedPriceRange] = useState('Tất cả');
-    const [filteredProducts, setFilteredProducts] = useState(allProducts);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch products from backend
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/products', {
+                    timeout: 5000,
+                });
+                const enrichedProducts = response.data.products.map(product => ({
+                    name: product.name,
+                    originalPrice: product.originalPrice,
+                    discountedPrice: product.discountedPrice,
+                    img: product.img || '/images/placeholder.jpg', // Placeholder nếu img null
+                    category: product.category,
+                    specialCategory: product.specialCategory || 'none', // Thêm trường specialCategory
+                }));
+                setProducts(enrichedProducts);
+                setFilteredProducts(enrichedProducts); // Ban đầu hiển thị tất cả
+                setError(null);
+            } catch (err) {
+                setError('Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     useEffect(() => {
-        let result = [...allProducts]; // Tạo bản sao để tránh mutate state gốc
+        let result = [...products]; // Tạo bản sao để tránh mutate state gốc
 
-        // Lọc theo loại sản phẩm (dựa trên name)
+        // Lọc theo loại sản phẩm (dựa trên category hoặc specialCategory)
         if (selectedCategory !== 'Tất cả') {
             result = result.filter(product =>
-                product.name.toLowerCase().includes(selectedCategory.toLowerCase())
+                product.category.toLowerCase() === selectedCategory.toLowerCase() ||
+                (product.specialCategory && product.specialCategory.toLowerCase() === selectedCategory.toLowerCase())
             );
         }
 
@@ -50,7 +71,7 @@ function Menu() {
         }
 
         setFilteredProducts(result);
-    }, [selectedCategory, selectedPriceRange]);
+    }, [selectedCategory, selectedPriceRange, products]);
 
     const priceRanges = [
         { value: 'Tất cả', label: 'Tất cả' },
@@ -68,7 +89,7 @@ function Menu() {
     const calculateDiscount = (originalPrice, discountedPrice) => {
         const origPrice = parseInt(originalPrice);
         const discPrice = parseInt(discountedPrice);
-        if (origPrice === discPrice) return 0;
+        if (origPrice === discPrice || origPrice <= 0) return 0;
         return Math.round(((origPrice - discPrice) / origPrice) * 100);
     };
 
@@ -77,10 +98,19 @@ function Menu() {
         setSelectedPriceRange('Tất cả');
     };
 
+    // Hàm giả lập addToCart (cần triển khai thêm)
+    const addToCart = (product) => {
+        console.log('Added to cart:', product);
+        // Thêm logic lưu vào giỏ hàng (ví dụ: localStorage hoặc context)
+    };
+
+    if (loading) return <div className="p-6 text-center">Đang tải...</div>;
+    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+
     return (
         <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50">
             <motion.section
-                className="py-12 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 shadow-md "
+                className="py-12 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 shadow-md"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.3 }}
@@ -130,6 +160,7 @@ function Menu() {
                                             alt={product.name}
                                             className="w-full h-48 object-cover transition-transform duration-300"
                                             loading="lazy"
+                                            onError={(e) => { e.target.src = '/images/placeholder.jpg'; }} // Placeholder khi lỗi
                                         />
                                         <div className="p-4 text-center">
                                             <h3 className="text-xl font-bold text-gray-900 mb-3 transition-all duration-300 group-hover:text-amber-600 group-hover:-translate-y-1">{product.name}</h3>
@@ -137,7 +168,7 @@ function Menu() {
                                                 <span className="text-yellow-500">★★★★☆</span>
                                             </div>
                                             <div className="flex justify-center items-baseline space-x-2 mb-2">
-                                                <p className="text-gray-500 line-through text-sm ">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
+                                                <p className="text-gray-500 line-through text-sm">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
                                                 <p className="text-red-500 font-bold text-lg">{parseInt(product.discountedPrice).toLocaleString('vi-VN')}đ</p>
                                             </div>
                                             <button
@@ -156,7 +187,7 @@ function Menu() {
                 </motion.section>
 
                 <motion.aside
-                    className="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg h-[500px] overflow-hidden" // Cố định chiều cao 500px, không có thanh cuộn
+                    className="w-full lg:w-1/4 bg-white p-6 rounded-lg shadow-lg h-[500px] overflow-hidden"
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.3 }}

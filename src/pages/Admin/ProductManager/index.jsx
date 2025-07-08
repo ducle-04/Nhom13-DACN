@@ -1,49 +1,72 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-
-const mockProducts = [
-    {
-        id: 1,
-        name: 'Combo Gà Rán',
-        originalPrice: 140000,
-        discountedPrice: 120000,
-        img: '/images/Product/garan-2.jpg',
-        discount: 'Giảm 15%',
-        category: 'Món chính',
-        status: 'active',
-    },
-    {
-        id: 2,
-        name: 'Pizza Hải Sản',
-        originalPrice: 187500,
-        discountedPrice: 150000,
-        img: '/images/Product/pizza-hai-san.jpg',
-        discount: 'Giảm 20%',
-        category: 'Món chính',
-        status: 'active',
-    },
-    {
-        id: 3,
-        name: 'Mỳ Ý Bò Bằm',
-        originalPrice: 88000,
-        discountedPrice: 80000,
-        img: '/images/Product/my-y-bo-bam.jpg',
-        discount: 'Giảm 10%',
-        category: 'Món chính',
-        status: 'inactive',
-    },
-];
+import axios from 'axios';
 
 function ProductManager() {
-    const [products, setProducts] = useState(mockProducts);
+    const [products, setProducts] = useState([]);
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add' | 'edit'
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [form, setForm] = useState({ name: '', originalPrice: '', discountedPrice: '', img: '', category: '', status: 'active' });
+    const [form, setForm] = useState({
+        name: '',
+        description: '',
+        originalPrice: '',
+        discountedPrice: '',
+        img: '',
+        category: '',
+        status: 'AVAILABLE',
+        specialCategory: '',
+    });
     const [showImageModal, setShowImageModal] = useState(false);
     const [imageToShow, setImageToShow] = useState(null);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const token = localStorage.getItem('token');
+    const baseImagePath = 'http://localhost:5173/images/Product/';
+
+    // Danh sách trạng thái và danh mục đặc biệt hợp lệ
+    const VALID_STATUSES = ['AVAILABLE', 'OUT_OF_STOCK', 'DISCONTINUED'];
+    const VALID_SPECIAL_CATEGORIES = ['FEATURED', 'NEW', 'BESTSELLER', ''];
+
+    // Lấy danh sách sản phẩm từ backend
+    useEffect(() => {
+        const fetchProducts = async () => {
+            if (!token) {
+                setError('Vui lòng đăng nhập với vai trò ADMIN.');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await axios.get('http://localhost:8080/api/products', {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                const enrichedProducts = response.data.products.map(product => ({
+                    id: product.id,
+                    name: product.name,
+                    description: product.description || '',
+                    originalPrice: product.originalPrice,
+                    discountedPrice: product.discountedPrice || 0,
+                    img: product.img || '/images/Product/placeholder.jpg',
+                    discount: calculateDiscount(product.originalPrice, product.discountedPrice || 0),
+                    category: product.category,
+                    status: product.status || 'AVAILABLE',
+                    specialCategory: product.specialCategory || '',
+                }));
+                setProducts(enrichedProducts);
+                setError(null);
+            } catch (err) {
+                setError(err.response?.data?.message || 'Không thể tải danh sách sản phẩm.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, [token]);
 
     // Tính toán discount
     const calculateDiscount = (originalPrice, discountedPrice) => {
@@ -59,13 +82,25 @@ function ProductManager() {
         if (type === 'edit' && product) {
             setForm({
                 name: product.name,
+                description: product.description || '',
+                originalPrice: product.originalPrice,
                 discountedPrice: product.discountedPrice,
-                img: product.img,
+                img: product.img && product.img.startsWith(baseImagePath) ? product.img.replace(baseImagePath, '') : product.img,
                 category: product.category,
-                status: product.status,
+                status: product.status || 'AVAILABLE',
+                specialCategory: product.specialCategory || '',
             });
         } else {
-            setForm({ name: '', originalPrice: '', discountedPrice: '', img: '', category: '', status: 'active' });
+            setForm({
+                name: '',
+                description: '',
+                originalPrice: '',
+                discountedPrice: '',
+                img: '',
+                category: '',
+                status: 'AVAILABLE',
+                specialCategory: '',
+            });
         }
         setShowModal(true);
     };
@@ -80,12 +115,15 @@ function ProductManager() {
     // Xử lý thay đổi form
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        setForm((prev) => ({
+            ...prev,
+            [name]: name === 'originalPrice' || name === 'discountedPrice' ? parseFloat(value) || '' : value,
+        }));
     };
 
     // Mở modal xem ảnh lớn
     const handleShowImage = (img) => {
-        setImageToShow(img);
+        setImageToShow(img || '/images/Product/placeholder.jpg');
         setShowImageModal(true);
     };
 
@@ -96,74 +134,136 @@ function ProductManager() {
     };
 
     // Thêm hoặc chỉnh sửa sản phẩm
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (modalType === 'add') {
-            if (!form.name || !form.originalPrice || !form.discountedPrice || !form.img || !form.category) {
-                setError('Vui lòng nhập đầy đủ thông tin.');
-                return;
-            }
-            const originalPrice = parseFloat(form.originalPrice);
-            const discountedPrice = parseFloat(form.discountedPrice);
-            if (originalPrice < 0 || discountedPrice < 0) {
-                setError('Giá phải là số dương.');
-                return;
-            }
-            if (discountedPrice > originalPrice) {
-                setError('Giá khuyến mãi không được lớn hơn giá gốc.');
-                return;
-            }
+        if (!form.name || !form.originalPrice || !form.category || !form.status) {
+            setError('Vui lòng nhập đầy đủ thông tin bắt buộc (tên, giá gốc, danh mục, trạng thái).');
+            return;
+        }
+        const originalPrice = parseFloat(form.originalPrice);
+        const discountedPrice = parseFloat(form.discountedPrice) || 0;
+        if (originalPrice < 0 || discountedPrice < 0) {
+            setError('Giá phải là số dương.');
+            return;
+        }
+        if (discountedPrice > originalPrice) {
+            setError('Giá khuyến mãi không được lớn hơn giá gốc.');
+            return;
+        }
+        if (!VALID_STATUSES.includes(form.status)) {
+            setError(`Trạng thái không hợp lệ. Phải là một trong: ${VALID_STATUSES.join(', ')}`);
+            return;
+        }
+        if (form.specialCategory && !VALID_SPECIAL_CATEGORIES.includes(form.specialCategory)) {
+            setError(`Danh mục đặc biệt không hợp lệ. Phải là một trong: ${VALID_SPECIAL_CATEGORIES.filter(c => c).join(', ')} hoặc để trống`);
+            return;
+        }
+        const imageUrl = form.img ? (form.img.startsWith('http') ? form.img : `${baseImagePath}${form.img}`) : null;
+        if (imageUrl && imageUrl.startsWith('http') && !isValidUrl(imageUrl)) {
+            setError('URL hình ảnh không hợp lệ.');
+            return;
+        }
+        if (imageUrl && !imageUrl.startsWith('http') && !form.img.match(/\.(jpg|jpeg|png|gif)$/i)) {
+            setError('Tên tệp hình ảnh phải có đuôi .jpg, .jpeg, .png hoặc .gif.');
+            return;
+        }
 
-            const newProduct = {
-                id: Date.now(),
-                name: form.name,
-                originalPrice,
-                discountedPrice,
-                img: form.img,
-                discount: calculateDiscount(originalPrice, discountedPrice),
-                category: form.category,
-                status: form.status,
-            };
-            setProducts([...products, newProduct]);
+        try {
+            if (modalType === 'add') {
+                const response = await axios.post('http://localhost:8080/api/products', {
+                    name: form.name,
+                    description: form.description || null,
+                    originalPrice,
+                    discountedPrice,
+                    discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
+                    category: form.category,
+                    img: imageUrl,
+                    status: form.status,
+                    specialCategory: form.specialCategory || null,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                const newProduct = response.data.product;
+                setProducts([...products, {
+                    id: newProduct.id,
+                    name: newProduct.name,
+                    description: newProduct.description || '',
+                    originalPrice: newProduct.originalPrice,
+                    discountedPrice: newProduct.discountedPrice || 0,
+                    img: newProduct.img || '/images/Product/placeholder.jpg',
+                    discount: calculateDiscount(newProduct.originalPrice, newProduct.discountedPrice || 0),
+                    category: newProduct.category,
+                    status: newProduct.status || 'AVAILABLE',
+                    specialCategory: newProduct.specialCategory || '',
+                }]);
+            } else if (modalType === 'edit' && selectedProduct) {
+                const response = await axios.put(`http://localhost:8080/api/products/${selectedProduct.id}`, {
+                    name: form.name,
+                    description: form.description || null,
+                    originalPrice,
+                    discountedPrice,
+                    discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
+                    category: form.category,
+                    img: imageUrl,
+                    status: form.status,
+                    specialCategory: form.specialCategory || null,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                const updatedProduct = response.data.product;
+                setProducts(products.map(p =>
+                    p.id === selectedProduct.id ? {
+                        ...p,
+                        name: updatedProduct.name,
+                        description: updatedProduct.description || '',
+                        originalPrice: updatedProduct.originalPrice,
+                        discountedPrice: updatedProduct.discountedPrice || 0,
+                        img: updatedProduct.img || '/images/Product/placeholder.jpg',
+                        discount: calculateDiscount(updatedProduct.originalPrice, updatedProduct.discountedPrice || 0),
+                        category: updatedProduct.category,
+                        status: updatedProduct.status || 'AVAILABLE',
+                        specialCategory: updatedProduct.specialCategory || '',
+                    } : p
+                ));
+            }
             handleCloseModal();
-        } else if (modalType === 'edit' && selectedProduct) {
-            if (!form.name || !form.discountedPrice || !form.img || !form.category) {
-                setError('Vui lòng nhập đầy đủ thông tin.');
-                return;
-            }
-            const discountedPrice = parseFloat(form.discountedPrice);
-            if (discountedPrice < 0) {
-                setError('Giá khuyến mãi phải là số dương.');
-                return;
-            }
-            if (discountedPrice > selectedProduct.originalPrice) {
-                setError('Giá khuyến mãi không được lớn hơn giá gốc.');
-                return;
-            }
-
-            setProducts(
-                products.map((p) =>
-                    p.id === selectedProduct.id
-                        ? {
-                            ...p,
-                            name: form.name,
-                            discountedPrice,
-                            img: form.img,
-                            discount: calculateDiscount(p.originalPrice, discountedPrice),
-                            category: form.category,
-                            status: form.status,
-                        }
-                        : p
-                )
-            );
-            handleCloseModal();
+        } catch (err) {
+            setError(err.response?.data?.message || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} sản phẩm.`);
+            console.error(err);
         }
     };
 
     // Xóa sản phẩm
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
+        if (!token) {
+            setError('Vui lòng đăng nhập để thực hiện hành động này.');
+            return;
+        }
+
         if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-            setProducts(products.filter((p) => p.id !== id));
+            try {
+                await axios.delete(`http://localhost:8080/api/products/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                setProducts(products.filter(p => p.id !== id));
+                setError(null);
+            } catch (err) {
+                setError(err.response?.data || 'Không thể xóa sản phẩm.');
+                console.error(err);
+            }
+        }
+    };
+
+    // Kiểm tra URL hợp lệ
+    const isValidUrl = (url) => {
+        try {
+            new URL(url);
+            return true;
+        } catch (e) {
+            return false;
         }
     };
 
@@ -171,8 +271,12 @@ function ProductManager() {
     const filtered = products.filter(
         (p) =>
             p.name.toLowerCase().includes(search.toLowerCase()) ||
-            p.category.toLowerCase().includes(search.toLowerCase())
+            p.category.toLowerCase().includes(search.toLowerCase()) ||
+            (p.specialCategory && p.specialCategory.toLowerCase().includes(search.toLowerCase()))
     );
+
+    if (loading) return <div className="p-6 text-center">Đang tải...</div>;
+    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
     return (
         <div className="p-6">
@@ -184,7 +288,7 @@ function ProductManager() {
                         <input
                             type="text"
                             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Tìm tên hoặc danh mục..."
+                            placeholder="Tìm tên, danh mục hoặc danh mục đặc biệt..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -206,6 +310,7 @@ function ProductManager() {
                             <th className="border border-gray-300 p-3 text-left">Hình ảnh</th>
                             <th className="border border-gray-300 p-3 text-left">Tên sản phẩm</th>
                             <th className="border border-gray-300 p-3 text-left">Danh mục</th>
+                            <th className="border border-gray-300 p-3 text-left">Danh mục đặc biệt</th>
                             <th className="border border-gray-300 p-3 text-left">Giá gốc</th>
                             <th className="border border-gray-300 p-3 text-left">Giá khuyến mãi</th>
                             <th className="border border-gray-300 p-3 text-left">Giảm giá</th>
@@ -216,7 +321,7 @@ function ProductManager() {
                     <tbody>
                         {filtered.length === 0 ? (
                             <tr>
-                                <td colSpan="9" className="text-center text-gray-500 py-4">
+                                <td colSpan="10" className="text-center text-gray-500 py-4">
                                     Không có sản phẩm phù hợp
                                 </td>
                             </tr>
@@ -229,20 +334,25 @@ function ProductManager() {
                                             src={p.img}
                                             alt={p.name}
                                             className="w-12 h-12 object-cover rounded cursor-pointer"
+                                            onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
                                             onClick={() => handleShowImage(p.img)}
                                         />
                                     </td>
                                     <td className="border border-gray-300 p-3">{p.name}</td>
                                     <td className="border border-gray-300 p-3">{p.category}</td>
+                                    <td className="border border-gray-300 p-3">{p.specialCategory || 'Không có'}</td>
                                     <td className="border border-gray-300 p-3">{p.originalPrice.toLocaleString('vi-VN')} VNĐ</td>
                                     <td className="border border-gray-300 p-3">{p.discountedPrice.toLocaleString('vi-VN')} VNĐ</td>
                                     <td className="border border-gray-300 p-3">{p.discount}</td>
                                     <td className="border border-gray-300 p-3">
                                         <span
-                                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${p.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'
+                                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${p.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
+                                                p.status === 'OUT_OF_STOCK' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-gray-200 text-gray-800'
                                                 }`}
                                         >
-                                            {p.status === 'active' ? 'Hoạt động' : 'Ngừng'}
+                                            {p.status === 'AVAILABLE' ? 'Có sẵn' :
+                                                p.status === 'OUT_OF_STOCK' ? 'Hết hàng' : 'Ngừng kinh doanh'}
                                         </span>
                                     </td>
                                     <td className="border border-gray-300 p-3 flex space-x-2">
@@ -274,6 +384,7 @@ function ProductManager() {
                             src={imageToShow}
                             alt="Product"
                             className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                            onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
                         />
                         <button
                             className="absolute top-4 right-4 text-white text-2xl font-bold bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-700"
@@ -288,26 +399,27 @@ function ProductManager() {
             {/* Modal thêm/chỉnh sửa */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl">
                         <h3 className="text-lg font-bold mb-4">{modalType === 'add' ? 'Thêm sản phẩm' : 'Chỉnh sửa sản phẩm'}</h3>
                         {error && <div className="text-red-500 mb-4">{error}</div>}
                         <form onSubmit={handleSubmit}>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block font-medium">Tên sản phẩm</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={form.name}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập tên sản phẩm"
-                                    />
-                                </div>
-                                {modalType === 'add' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Cột trái */}
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="block font-medium">Giá gốc</label>
+                                        <label className="block font-medium text-sm">Tên sản phẩm *</label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.name}
+                                            onChange={handleChange}
+                                            required
+                                            placeholder="Nhập tên sản phẩm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block font-medium text-sm">Giá gốc *</label>
                                         <input
                                             type="number"
                                             name="originalPrice"
@@ -319,66 +431,100 @@ function ProductManager() {
                                             min="0"
                                         />
                                     </div>
-                                )}
-                                <div>
-                                    <label className="block font-medium">Giá khuyến mãi</label>
-                                    <input
-                                        type="number"
-                                        name="discountedPrice"
-                                        className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={form.discountedPrice}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập giá khuyến mãi"
-                                        min="0"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-medium">URL hình ảnh</label>
-                                    <input
-                                        type="url"
-                                        name="img"
-                                        className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={form.img}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Dán link ảnh"
-                                    />
-                                    {form.img && (
-                                        <img
-                                            src={form.img}
-                                            alt="Preview"
-                                            className="w-20 h-20 object-cover mt-2 rounded"
+                                    <div>
+                                        <label className="block font-medium text-sm">Giá khuyến mãi</label>
+                                        <input
+                                            type="number"
+                                            name="discountedPrice"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.discountedPrice}
+                                            onChange={handleChange}
+                                            placeholder="Nhập giá khuyến mãi"
+                                            min="0"
                                         />
-                                    )}
+                                    </div>
+                                    <div>
+                                        <label className="block font-medium text-sm">Danh mục *</label>
+                                        <select
+                                            name="category"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.category}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="">Chọn danh mục</option>
+                                            <option value="Gà rán">Gà rán</option>
+                                            <option value="Mỳ ý">Mỳ ý</option>
+                                            <option value="Pizza">Pizza</option>
+                                            <option value="Cơm">Cơm</option>
+                                            <option value="Salad">Salad</option>
+                                            <option value="Bánh">Bánh</option>
+                                            <option value="Đồ uống">Đồ uống</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block font-medium">Danh mục</label>
-                                    <select
-                                        name="category"
-                                        className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={form.category}
-                                        onChange={handleChange}
-                                        required
-                                    >
-                                        <option value="">Chọn danh mục</option>
-                                        <option value="Món chính">Món chính</option>
-                                        <option value="Tráng miệng">Tráng miệng</option>
-                                        <option value="Đồ uống">Đồ uống</option>
-                                    </select>
+                                {/* Cột phải */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block font-medium text-sm">Trạng thái *</label>
+                                        <select
+                                            name="status"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.status}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="AVAILABLE">Có sẵn</option>
+                                            <option value="OUT_OF_STOCK">Hết hàng</option>
+                                            <option value="DISCONTINUED">Ngừng kinh doanh</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block font-medium text-sm">Danh mục đặc biệt</label>
+                                        <select
+                                            name="specialCategory"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.specialCategory}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">Không có</option>
+                                            <option value="FEATURED">Nổi bật</option>
+                                            <option value="NEW">Mới</option>
+                                            <option value="BESTSELLER">Bán chạy</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block font-medium text-sm">Hình ảnh</label>
+                                        <input
+                                            type="text"
+                                            name="img"
+                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={form.img}
+                                            onChange={handleChange}
+                                            placeholder="Nhập tên tệp hoặc URL"
+                                        />
+                                        {form.img && (
+                                            <img
+                                                src={form.img.startsWith('http') ? form.img : `${baseImagePath}${form.img}`}
+                                                alt="Preview"
+                                                className="w-20 h-20 object-cover mt-2 rounded"
+                                                onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block font-medium">Trạng thái</label>
-                                    <select
-                                        name="status"
-                                        className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={form.status}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="active">Hoạt động</option>
-                                        <option value="inactive">Ngừng</option>
-                                    </select>
-                                </div>
+                            </div>
+                            {/* Mô tả chiếm toàn bộ chiều rộng */}
+                            <div className="mt-4">
+                                <label className="block font-medium text-sm">Mô tả</label>
+                                <textarea
+                                    name="description"
+                                    className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={form.description}
+                                    onChange={handleChange}
+                                    placeholder="Nhập mô tả sản phẩm"
+                                    rows="4"
+                                />
                             </div>
                             <div className="flex justify-end mt-6 space-x-2">
                                 <button
@@ -404,3 +550,4 @@ function ProductManager() {
 }
 
 export default ProductManager;
+
