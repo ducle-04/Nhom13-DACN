@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt, FaList, FaTag } from 'react-icons/fa';
 
 const menu = [
     { label: 'Dashboard', icon: <FaTachometerAlt />, path: '/admin' },
     { label: 'Quản lý người dùng', icon: <FaUsers />, path: '/admin/user' },
     { label: 'Quản lý sản phẩm', icon: <FaBox />, path: '/admin/products' },
+    { label: 'Quản lý loại sản phẩm', icon: <FaList />, path: '/admin/product-types' },
+    { label: 'Quản lý danh mục', icon: <FaTag />, path: '/admin/categories' },
     { label: 'Quản lý đơn hàng', icon: <FaShoppingCart />, path: '/admin/orders' },
 ];
 

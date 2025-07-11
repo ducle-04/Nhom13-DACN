@@ -1,198 +1,308 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FaFacebookF, FaTwitter, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function Register() {
     const [formData, setFormData] = useState({
-        fullName: '',
+        fullname: '',
         email: '',
         username: '',
         password: '',
         confirmPassword: '',
+        address: '',
+        phoneNumber: ''
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-        if (error) setError('');
-        if (success) setSuccess('');
+        setFormData({ ...formData, [name]: value });
+        setError('');
+        setSuccess('');
+        // Clear field error when user starts typing
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: '' });
+        }
     };
 
     const validateForm = () => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            setError('Email không hợp lệ.');
-            return false;
+        const errors = {};
+
+        // Check required fields
+        if (!formData.fullname.trim()) {
+            errors.fullname = 'Họ và tên không được để trống';
+        } else if (formData.fullname.length < 2) {
+            errors.fullname = 'Họ và tên phải có ít nhất 2 ký tự';
         }
-        if (formData.password.length < 6) {
-            setError('Mật khẩu phải có ít nhất 6 ký tự.');
-            return false;
+
+        if (!formData.email.trim()) {
+            errors.email = 'Email không được để trống';
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                errors.email = 'Email không hợp lệ';
+            }
         }
-        return true;
+
+        if (!formData.username.trim()) {
+            errors.username = 'Tên đăng nhập không được để trống';
+        } else if (formData.username.length < 3) {
+            errors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự';
+        }
+
+        if (!formData.password.trim()) {
+            errors.password = 'Mật khẩu không được để trống';
+        } else if (formData.password.length < 6) {
+            errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+        }
+
+        if (!formData.confirmPassword.trim()) {
+            errors.confirmPassword = 'Xác nhận mật khẩu không được để trống';
+        } else if (formData.password !== formData.confirmPassword) {
+            errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+        }
+
+        if (!formData.address.trim()) {
+            errors.address = 'Địa chỉ không được để trống';
+        }
+
+        if (!formData.phoneNumber.trim()) {
+            errors.phoneNumber = 'Số điện thoại không được để trống';
+        } else if (!/^\+?\d{8,15}$/.test(formData.phoneNumber)) {
+            errors.phoneNumber = 'Số điện thoại không hợp lệ';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (formData.password !== formData.confirmPassword) {
-            setError('Mật khẩu và xác nhận mật khẩu không khớp.');
-            return;
-        }
         if (!validateForm()) return;
 
         const registerData = {
-            fullName: formData.fullName || undefined,
-            email: formData.email,
-            username: formData.username,
+            username: formData.username.trim(),
+            email: formData.email.trim(),
+            fullname: formData.fullname.trim(),
+            address: formData.address.trim(),
+            phoneNumber: formData.phoneNumber.trim(),
             password: formData.password,
         };
 
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/register', registerData, {
+            await axios.post('http://localhost:8080/api/auth/register', registerData, {
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 5000,
             });
-            setSuccess('Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.');
-            setError('');
-            setTimeout(() => {
-                navigate('/login');
-            }, 1000);
+            setSuccess('Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...');
+            setTimeout(() => navigate('/login'), 1500);
         } catch (err) {
-            console.error('Registration error:', err.response);
-            if (err.response && err.response.data) {
-                setError(err.response.data.message || err.response.data.error || 'Đăng ký thất bại. Vui lòng thử lại.');
-            } else {
-                setError('Có lỗi xảy ra khi kết nối đến server. Vui lòng thử lại sau.');
-            }
-            setSuccess('');
+            setError(err.response?.data || 'Đăng ký thất bại. Vui lòng thử lại sau.');
         } finally {
             setLoading(false);
         }
     };
 
+    const inputFields = [
+        { id: 'fullname', label: 'Họ và tên', type: 'text', placeholder: 'Nhập họ và tên', required: true },
+        { id: 'email', label: 'Email', type: 'email', placeholder: 'Nhập địa chỉ email', required: true },
+        { id: 'username', label: 'Tên đăng nhập', type: 'text', placeholder: 'Nhập tên đăng nhập', required: true },
+        { id: 'address', label: 'Địa chỉ', type: 'text', placeholder: 'Nhập địa chỉ', required: true },
+        { id: 'phoneNumber', label: 'Số điện thoại', type: 'tel', placeholder: 'Nhập số điện thoại', required: true },
+    ];
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 flex flex-col items-center justify-center py-12">
-            <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-gray-900 mb-3 font-montserrat">Create your account</h2>
-                <p className="text-gray-600 text-lg">
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-blue-600 hover:underline font-semibold">
-                        Sign in
-                    </Link>
-                </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-5">
-                        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            id="fullName"
-                            name="fullName"
-                            value={formData.fullName}
-                            onChange={handleChange}
-                            placeholder="Enter your full name"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                            required
-                        />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 px-4 py-8">
+            <div className="bg-white/80 backdrop-blur-sm w-full max-w-lg p-8 rounded-2xl shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-white text-2xl font-bold">R</span>
                     </div>
-                    <div className="mb-5">
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                            Email Address
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        Tạo tài khoản
+                    </h2>
+                    <p className="text-gray-600">
+                        Đã có tài khoản?{' '}
+                        <Link to="/login" className="text-blue-600 font-medium hover:text-blue-700 transition-colors">
+                            Đăng nhập ngay
+                        </Link>
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Regular input fields */}
+                    {inputFields.map(({ id, label, type, placeholder, required }) => (
+                        <div key={id} className="space-y-2">
+                            <label htmlFor={id} className="block text-sm font-semibold text-gray-700">
+                                {label}
+                                {required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            <input
+                                type={type}
+                                id={id}
+                                name={id}
+                                value={formData[id]}
+                                onChange={handleChange}
+                                placeholder={placeholder}
+                                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors[id]
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                            />
+                            {fieldErrors[id] && (
+                                <p className="text-red-500 text-sm mt-1 flex items-center">
+                                    <span className="w-4 h-4 mr-1">⚠️</span>
+                                    {fieldErrors[id]}
+                                </p>
+                            )}
+                        </div>
+                    ))}
+
+                    {/* Password field */}
+                    <div className="space-y-2">
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                            Mật khẩu
+                            <span className="text-red-500 ml-1">*</span>
                         </label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter your email"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Nhập mật khẩu"
+                                className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.password
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                            >
+                                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                            </button>
+                        </div>
+                        {fieldErrors.password && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <span className="w-4 h-4 mr-1">⚠️</span>
+                                {fieldErrors.password}
+                            </p>
+                        )}
                     </div>
-                    <div className="mb-5">
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                            Username
+
+                    {/* Confirm Password field */}
+                    <div className="space-y-2">
+                        <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
+                            Xác nhận mật khẩu
+                            <span className="text-red-500 ml-1">*</span>
                         </label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Enter your username"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                placeholder="Nhập lại mật khẩu"
+                                className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.confirmPassword
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                            >
+                                {showConfirmPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                            </button>
+                        </div>
+                        {fieldErrors.confirmPassword && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <span className="w-4 h-4 mr-1">⚠️</span>
+                                {fieldErrors.confirmPassword}
+                            </p>
+                        )}
                     </div>
-                    <div className="mb-5">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Enter your password"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                            required
-                        />
-                    </div>
-                    <div className="mb-5">
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                            Confirm Password
-                        </label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            placeholder="Confirm your password"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                            required
-                        />
-                    </div>
-                    {error && <div className="mb-5 text-red-600 text-sm text-center">{error}</div>}
-                    {success && <div className="mb-5 text-green-600 text-sm text-center">{success}</div>}
+
+                    {/* Global error/success messages */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                            {error}
+                        </div>
+                    )}
+                    {success && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                            {success}
+                        </div>
+                    )}
+
+                    {/* Submit button */}
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                         disabled={loading}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
-                        {loading ? 'Đang xử lý...' : 'Register'}
+                        {loading ? (
+                            <span className="flex items-center justify-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Đang đăng ký...
+                            </span>
+                        ) : (
+                            'Đăng ký'
+                        )}
                     </button>
-                    <div className="text-center mt-6 text-gray-600">Or continue with</div>
-                    <div className="flex justify-center space-x-4 mt-6">
-                        <button type="button" className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all" aria-label="Sign up with Facebook">
-                            <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                            </svg>
+                </form>
+
+                {/* Social login */}
+                <div className="mt-8">
+                    <div className="flex items-center">
+                        <hr className="flex-grow border-t border-gray-300" />
+                        <span className="mx-4 text-gray-500 text-sm font-medium">hoặc tiếp tục với</span>
+                        <hr className="flex-grow border-t border-gray-300" />
+                    </div>
+
+                    <div className="flex justify-center gap-4 mt-6">
+                        <button
+                            type="button"
+                            className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng ký với Facebook"
+                        >
+                            <FaFacebookF size={20} />
                         </button>
-                        <button type="button" className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all" aria-label="Sign up with Twitter">
-                            <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482A13.87 13.87 0 011.67 3.899a4.924 4.924 0 001.518 6.573 4.9 4.9 0 01-2.229-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                            </svg>
+
+                        <button
+                            type="button"
+                            className="w-12 h-12 bg-sky-500 text-white rounded-full flex items-center justify-center hover:bg-sky-600 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng ký với Twitter"
+                        >
+                            <FaTwitter size={20} />
                         </button>
-                        <button type="button" className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all" aria-label="Sign up with GitHub">
-                            <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12c0 4.41 2.87 8.16 6.84 9.47.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .26.18.58.69.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z" />
-                            </svg>
+
+                        <button
+                            type="button"
+                            className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-gray-900 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng ký với GitHub"
+                        >
+                            <FaGithub size={20} />
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );

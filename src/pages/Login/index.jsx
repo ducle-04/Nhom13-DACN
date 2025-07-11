@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FaFacebook, FaTwitter, FaGithub, FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
 
 function Login() {
     const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ function Login() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -21,18 +24,25 @@ function Login() {
         });
         setError('');
         setSuccess('');
+        // Clear field error when user starts typing
+        if (fieldErrors[name]) {
+            setFieldErrors({ ...fieldErrors, [name]: '' });
+        }
     };
 
     const validateForm = () => {
+        const errors = {};
+
         if (!formData.username.trim()) {
-            setError('Tên người dùng không được để trống.');
-            return false;
+            errors.username = 'Tên đăng nhập không được để trống';
         }
+
         if (!formData.password.trim()) {
-            setError('Mật khẩu không được để trống.');
-            return false;
+            errors.password = 'Mật khẩu không được để trống';
         }
-        return true;
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     // Helper function to decode JWT token
@@ -47,9 +57,8 @@ function Login() {
                     .join('')
             );
             return JSON.parse(jsonPayload);
-        } catch (err) {
-            console.error('Error decoding JWT:', err);
-            return null;
+        } catch {
+            return { roles: [] }; // Fallback if decoding fails
         }
     };
 
@@ -60,18 +69,24 @@ function Login() {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', {
-                username: formData.username,
-                password: formData.password,
-            }, {
-                timeout: 5000,
-            });
+            const response = await axios.post(
+                'http://localhost:8080/api/auth/login',
+                {
+                    username: formData.username.trim(),
+                    password: formData.password.trim(),
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 5000,
+                }
+            );
 
-            // Lấy token từ response 
-            const token = typeof response.data === 'string' ? response.data : response.data.token;
+            const token = response.data.token;
+            if (!token) {
+                throw new Error('No token received');
+            }
             localStorage.setItem('token', token);
 
-            // Decode JWT
             const decodedToken = decodeJwt(token);
             const roles = decodedToken?.roles || [];
 
@@ -84,7 +99,7 @@ function Login() {
                 }
             }, 1000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(err.response?.data || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
             setSuccess('');
         } finally {
             setLoading(false);
@@ -92,47 +107,99 @@ function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-100 flex flex-col items-center justify-center py-12">
-            <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-gray-900 mb-3 font-montserrat">Sign in to your account</h2>
-                <p className="text-gray-600 text-lg">
-                    Or{' '}
-                    <Link to="/register" className="text-blue-600 hover:underline font-semibold">
-                        create an account
-                    </Link>
-                </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md transform transition-all hover:shadow-xl">
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-5">
-                        <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            placeholder="Enter your Username"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                        />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 px-4 py-8">
+            <div className="bg-white/80 backdrop-blur-sm w-full max-w-md p-8 rounded-2xl shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <FaUser className="text-white text-2xl" />
                     </div>
-                    <div className="mb-5">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                            Password
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        Chào mừng trở lại
+                    </h2>
+                    <p className="text-gray-600">
+                        Chưa có tài khoản?{' '}
+                        <Link to="/register" className="text-blue-600 font-medium hover:text-blue-700 transition-colors">
+                            Đăng ký ngay
+                        </Link>
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Username field */}
+                    <div className="space-y-2">
+                        <label htmlFor="username" className="block text-sm font-semibold text-gray-700">
+                            Tên đăng nhập
+                            <span className="text-red-500 ml-1">*</span>
                         </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            placeholder="Enter your password"
-                            className="p-3 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                        />
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaUser className="text-gray-400" />
+                            </div>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleChange}
+                                placeholder="Nhập tên đăng nhập"
+                                className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.username
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                disabled={loading}
+                            />
+                        </div>
+                        {fieldErrors.username && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <span className="w-4 h-4 mr-1">⚠️</span>
+                                {fieldErrors.username}
+                            </p>
+                        )}
                     </div>
-                    <div className="flex items-center justify-between mb-6">
+
+                    {/* Password field */}
+                    <div className="space-y-2">
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                            Mật khẩu
+                            <span className="text-red-500 ml-1">*</span>
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaLock className="text-gray-400" />
+                            </div>
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                placeholder="Nhập mật khẩu"
+                                className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.password
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                disabled={loading}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                disabled={loading}
+                            >
+                                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                            </button>
+                        </div>
+                        {fieldErrors.password && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center">
+                                <span className="w-4 h-4 mr-1">⚠️</span>
+                                {fieldErrors.password}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Remember me & Forgot password */}
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center">
                             <input
                                 type="checkbox"
@@ -140,56 +207,87 @@ function Login() {
                                 name="rememberMe"
                                 checked={formData.rememberMe}
                                 onChange={handleChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
+                                disabled={loading}
                             />
-                            <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600">
-                                Remember me
+                            <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-600 font-medium">
+                                Ghi nhớ đăng nhập
                             </label>
                         </div>
-                        <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                            Forgot your password?
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                            Quên mật khẩu?
                         </Link>
                     </div>
-                    {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                    {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
+
+                    {/* Global error/success messages */}
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                            {error}
+                        </div>
+                    )}
+                    {success && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                            {success}
+                        </div>
+                    )}
+
+                    {/* Submit button */}
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                         disabled={loading}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
-                        {loading ? 'Đang xử lý...' : 'Sign in'}
+                        {loading ? (
+                            <span className="flex items-center justify-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Đang xử lý...
+                            </span>
+                        ) : (
+                            'Đăng nhập'
+                        )}
                     </button>
-                    <div className="text-center mt-6 text-gray-600">Or continue with</div>
-                    <div className="flex justify-center space-x-4 mt-6">
+                </form>
+
+                {/* Social login */}
+                <div className="mt-8">
+                    <div className="flex items-center">
+                        <hr className="flex-grow border-t border-gray-300" />
+                        <span className="mx-4 text-gray-500 text-sm font-medium">hoặc tiếp tục với</span>
+                        <hr className="flex-grow border-t border-gray-300" />
+                    </div>
+
+                    <div className="flex justify-center gap-4 mt-6">
                         <button
                             type="button"
-                            className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
-                            aria-label="Sign in with Facebook"
+                            className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng nhập với Facebook"
                         >
-                            <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                            </svg>
+                            <FaFacebook size={20} />
                         </button>
+
                         <button
                             type="button"
-                            className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
-                            aria-label="Sign in with Twitter"
+                            className="w-12 h-12 bg-sky-500 text-white rounded-full flex items-center justify-center hover:bg-sky-600 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng nhập với Twitter"
                         >
-                            <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482A13.87 13.87 0 011.67 3.899a4.924 4.924 0 001.518 6.573 4.9 4.9 0 01-2.229-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                            </svg>
+                            <FaTwitter size={20} />
                         </button>
+
                         <button
                             type="button"
-                            className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
-                            aria-label="Sign in with GitHub"
+                            className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-gray-900 transition-all duration-200 transform hover:scale-110 shadow-lg"
+                            aria-label="Đăng nhập với GitHub"
                         >
-                            <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12c0 4.41 2.87 8.16 6.84 9.47.5.09.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .26.18.58.69.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z" />
-                            </svg>
+                            <FaGithub size={20} />
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     );

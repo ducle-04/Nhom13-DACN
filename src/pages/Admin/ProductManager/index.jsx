@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
 
 function ProductManager() {
@@ -8,15 +8,19 @@ function ProductManager() {
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState('add'); // 'add' | 'edit'
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [productTypes, setProductTypes] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [form, setForm] = useState({
         name: '',
         description: '',
         originalPrice: '',
         discountedPrice: '',
         img: '',
-        category: '',
+        productTypeId: '',
+        productTypeName: '',
         status: 'AVAILABLE',
-        specialCategory: '',
+        categoryId: '',
+        categoryName: '',
     });
     const [showImageModal, setShowImageModal] = useState(false);
     const [imageToShow, setImageToShow] = useState(null);
@@ -26,13 +30,9 @@ function ProductManager() {
     const token = localStorage.getItem('token');
     const baseImagePath = 'http://localhost:5173/images/Product/';
 
-    // Danh sách trạng thái và danh mục đặc biệt hợp lệ
-    const VALID_STATUSES = ['AVAILABLE', 'OUT_OF_STOCK', 'DISCONTINUED'];
-    const VALID_SPECIAL_CATEGORIES = ['FEATURED', 'NEW', 'BESTSELLER', ''];
-
-    // Lấy danh sách sản phẩm từ backend
+    // Lấy danh sách sản phẩm, loại sản phẩm và danh mục từ backend
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             if (!token) {
                 setError('Vui lòng đăng nhập với vai trò ADMIN.');
                 setLoading(false);
@@ -40,11 +40,12 @@ function ProductManager() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/products', {
+                // Lấy danh sách sản phẩm
+                const productResponse = await axios.get('http://localhost:8080/api/products', {
                     headers: { Authorization: `Bearer ${token}` },
                     timeout: 5000,
                 });
-                const enrichedProducts = response.data.products.map(product => ({
+                const enrichedProducts = productResponse.data.products.map(product => ({
                     id: product.id,
                     name: product.name,
                     description: product.description || '',
@@ -52,20 +53,37 @@ function ProductManager() {
                     discountedPrice: product.discountedPrice || 0,
                     img: product.img || '/images/Product/placeholder.jpg',
                     discount: calculateDiscount(product.originalPrice, product.discountedPrice || 0),
-                    category: product.category,
+                    productTypeId: product.productTypeId,
+                    productTypeName: product.productTypeName || '',
                     status: product.status || 'AVAILABLE',
-                    specialCategory: product.specialCategory || '',
+                    categoryId: product.categoryId,
+                    categoryName: product.categoryName || '',
                 }));
                 setProducts(enrichedProducts);
+
+                // Lấy danh sách productTypes
+                const productTypeResponse = await axios.get('http://localhost:8080/api/product-types', {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                setProductTypes(productTypeResponse.data);
+
+                // Lấy danh sách categories
+                const categoryResponse = await axios.get('http://localhost:8080/api/categories', {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 5000,
+                });
+                setCategories(categoryResponse.data);
+
                 setError(null);
             } catch (err) {
-                setError(err.response?.data?.message || 'Không thể tải danh sách sản phẩm.');
+                setError(err.response?.data || 'Không thể tải dữ liệu.');
                 console.error(err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchProducts();
+        fetchData();
     }, [token]);
 
     // Tính toán discount
@@ -86,9 +104,11 @@ function ProductManager() {
                 originalPrice: product.originalPrice,
                 discountedPrice: product.discountedPrice,
                 img: product.img && product.img.startsWith(baseImagePath) ? product.img.replace(baseImagePath, '') : product.img,
-                category: product.category,
+                productTypeId: product.productTypeId || '',
+                productTypeName: product.productTypeName || '',
                 status: product.status || 'AVAILABLE',
-                specialCategory: product.specialCategory || '',
+                categoryId: product.categoryId || '',
+                categoryName: product.categoryName || '',
             });
         } else {
             setForm({
@@ -97,9 +117,11 @@ function ProductManager() {
                 originalPrice: '',
                 discountedPrice: '',
                 img: '',
-                category: '',
+                productTypeId: '',
+                productTypeName: '',
                 status: 'AVAILABLE',
-                specialCategory: '',
+                categoryId: '',
+                categoryName: '',
             });
         }
         setShowModal(true);
@@ -118,6 +140,14 @@ function ProductManager() {
         setForm((prev) => ({
             ...prev,
             [name]: name === 'originalPrice' || name === 'discountedPrice' ? parseFloat(value) || '' : value,
+            // Đồng bộ productTypeName khi chọn productTypeId
+            ...(name === 'productTypeId' && {
+                productTypeName: productTypes.find(pt => pt.id === parseInt(value))?.name || ''
+            }),
+            // Đồng bộ categoryName khi chọn categoryId
+            ...(name === 'categoryId' && {
+                categoryName: categories.find(cat => cat.id === parseInt(value))?.name || ''
+            }),
         }));
     };
 
@@ -136,8 +166,8 @@ function ProductManager() {
     // Thêm hoặc chỉnh sửa sản phẩm
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.name || !form.originalPrice || !form.category || !form.status) {
-            setError('Vui lòng nhập đầy đủ thông tin bắt buộc (tên, giá gốc, danh mục, trạng thái).');
+        if (!form.name || !form.originalPrice || !form.productTypeId || !form.status) {
+            setError('Vui lòng nhập đầy đủ thông tin bắt buộc (tên, giá gốc, loại sản phẩm, trạng thái).');
             return;
         }
         const originalPrice = parseFloat(form.originalPrice);
@@ -148,14 +178,6 @@ function ProductManager() {
         }
         if (discountedPrice > originalPrice) {
             setError('Giá khuyến mãi không được lớn hơn giá gốc.');
-            return;
-        }
-        if (!VALID_STATUSES.includes(form.status)) {
-            setError(`Trạng thái không hợp lệ. Phải là một trong: ${VALID_STATUSES.join(', ')}`);
-            return;
-        }
-        if (form.specialCategory && !VALID_SPECIAL_CATEGORIES.includes(form.specialCategory)) {
-            setError(`Danh mục đặc biệt không hợp lệ. Phải là một trong: ${VALID_SPECIAL_CATEGORIES.filter(c => c).join(', ')} hoặc để trống`);
             return;
         }
         const imageUrl = form.img ? (form.img.startsWith('http') ? form.img : `${baseImagePath}${form.img}`) : null;
@@ -176,10 +198,12 @@ function ProductManager() {
                     originalPrice,
                     discountedPrice,
                     discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
-                    category: form.category,
+                    productTypeId: parseInt(form.productTypeId),
+                    productTypeName: form.productTypeName || null,
                     img: imageUrl,
                     status: form.status,
-                    specialCategory: form.specialCategory || null,
+                    categoryId: form.categoryId ? parseInt(form.categoryId) : null,
+                    categoryName: form.categoryName || null,
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
                     timeout: 5000,
@@ -193,9 +217,11 @@ function ProductManager() {
                     discountedPrice: newProduct.discountedPrice || 0,
                     img: newProduct.img || '/images/Product/placeholder.jpg',
                     discount: calculateDiscount(newProduct.originalPrice, newProduct.discountedPrice || 0),
-                    category: newProduct.category,
+                    productTypeId: newProduct.productTypeId,
+                    productTypeName: newProduct.productTypeName || '',
                     status: newProduct.status || 'AVAILABLE',
-                    specialCategory: newProduct.specialCategory || '',
+                    categoryId: newProduct.categoryId,
+                    categoryName: newProduct.categoryName || '',
                 }]);
             } else if (modalType === 'edit' && selectedProduct) {
                 const response = await axios.put(`http://localhost:8080/api/products/${selectedProduct.id}`, {
@@ -204,10 +230,12 @@ function ProductManager() {
                     originalPrice,
                     discountedPrice,
                     discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
-                    category: form.category,
+                    productTypeId: parseInt(form.productTypeId),
+                    productTypeName: form.productTypeName || null,
                     img: imageUrl,
                     status: form.status,
-                    specialCategory: form.specialCategory || null,
+                    categoryId: form.categoryId ? parseInt(form.categoryId) : null,
+                    categoryName: form.categoryName || null,
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
                     timeout: 5000,
@@ -222,15 +250,17 @@ function ProductManager() {
                         discountedPrice: updatedProduct.discountedPrice || 0,
                         img: updatedProduct.img || '/images/Product/placeholder.jpg',
                         discount: calculateDiscount(updatedProduct.originalPrice, updatedProduct.discountedPrice || 0),
-                        category: updatedProduct.category,
+                        productTypeId: updatedProduct.productTypeId,
+                        productTypeName: updatedProduct.productTypeName || '',
                         status: updatedProduct.status || 'AVAILABLE',
-                        specialCategory: updatedProduct.specialCategory || '',
+                        categoryId: updatedProduct.categoryId,
+                        categoryName: updatedProduct.categoryName || '',
                     } : p
                 ));
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.response?.data?.message || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} sản phẩm.`);
+            setError(err.response?.data || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} sản phẩm.`);
             console.error(err);
         }
     };
@@ -257,6 +287,78 @@ function ProductManager() {
         }
     };
 
+    // Tìm kiếm sản phẩm theo tên
+    const handleSearch = async () => {
+        if (!token) {
+            setError('Vui lòng đăng nhập để thực hiện tìm kiếm.');
+            return;
+        }
+
+        try {
+            const url = search
+                ? `http://localhost:8080/api/products/search?name=${encodeURIComponent(search)}`
+                : 'http://localhost:8080/api/products';
+            const response = await axios.get(url, {
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 5000,
+            });
+            const enrichedProducts = response.data.products.map(product => ({
+                id: product.id,
+                name: product.name,
+                description: product.description || '',
+                originalPrice: product.originalPrice,
+                discountedPrice: product.discountedPrice || 0,
+                img: product.img || '/images/Product/placeholder.jpg',
+                discount: calculateDiscount(product.originalPrice, product.discountedPrice || 0),
+                productTypeId: product.productTypeId,
+                productTypeName: product.productTypeName || '',
+                status: product.status || 'AVAILABLE',
+                categoryId: product.categoryId,
+                categoryName: product.categoryName || '',
+            }));
+            setProducts(enrichedProducts);
+            setError(null);
+        } catch (err) {
+            setError(err.response?.data || 'Không thể tìm kiếm sản phẩm.');
+            console.error(err);
+        }
+    };
+
+    // Xóa bộ lọc tìm kiếm và tải lại danh sách sản phẩm
+    const handleClearFilter = async () => {
+        setSearch('');
+        if (!token) {
+            setError('Vui lòng đăng nhập để thực hiện hành động này.');
+            return;
+        }
+
+        try {
+            const response = await axios.get('http://localhost:8080/api/products', {
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 5000,
+            });
+            const enrichedProducts = response.data.products.map(product => ({
+                id: product.id,
+                name: product.name,
+                description: product.description || '',
+                originalPrice: product.originalPrice,
+                discountedPrice: product.discountedPrice || 0,
+                img: product.img || '/images/Product/placeholder.jpg',
+                discount: calculateDiscount(product.originalPrice, product.discountedPrice || 0),
+                productTypeId: product.productTypeId,
+                productTypeName: product.productTypeName || '',
+                status: product.status || 'AVAILABLE',
+                categoryId: product.categoryId,
+                categoryName: product.categoryName || '',
+            }));
+            setProducts(enrichedProducts);
+            setError(null);
+        } catch (err) {
+            setError(err.response?.data || 'Không thể tải danh sách sản phẩm.');
+            console.error(err);
+        }
+    };
+
     // Kiểm tra URL hợp lệ
     const isValidUrl = (url) => {
         try {
@@ -266,14 +368,6 @@ function ProductManager() {
             return false;
         }
     };
-
-    // Lọc sản phẩm theo tìm kiếm
-    const filtered = products.filter(
-        (p) =>
-            p.name.toLowerCase().includes(search.toLowerCase()) ||
-            p.category.toLowerCase().includes(search.toLowerCase()) ||
-            (p.specialCategory && p.specialCategory.toLowerCase().includes(search.toLowerCase()))
-    );
 
     if (loading) return <div className="p-6 text-center">Đang tải...</div>;
     if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
@@ -287,11 +381,18 @@ function ProductManager() {
                         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
-                            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Tìm tên, danh mục hoặc danh mục đặc biệt..."
+                            className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Tìm kiếm theo tên sản phẩm..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
+                        {search && (
+                            <FaTimes
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer hover:text-red-500"
+                                onClick={handleClearFilter}
+                            />
+                        )}
                     </div>
                     <button
                         className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
@@ -309,8 +410,8 @@ function ProductManager() {
                             <th className="border border-gray-300 p-3 text-left">#</th>
                             <th className="border border-gray-300 p-3 text-left">Hình ảnh</th>
                             <th className="border border-gray-300 p-3 text-left">Tên sản phẩm</th>
+                            <th className="border border-gray-300 p-3 text-left">Loại sản phẩm</th>
                             <th className="border border-gray-300 p-3 text-left">Danh mục</th>
-                            <th className="border border-gray-300 p-3 text-left">Danh mục đặc biệt</th>
                             <th className="border border-gray-300 p-3 text-left">Giá gốc</th>
                             <th className="border border-gray-300 p-3 text-left">Giá khuyến mãi</th>
                             <th className="border border-gray-300 p-3 text-left">Giảm giá</th>
@@ -319,14 +420,14 @@ function ProductManager() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filtered.length === 0 ? (
+                        {products.length === 0 ? (
                             <tr>
                                 <td colSpan="10" className="text-center text-gray-500 py-4">
                                     Không có sản phẩm phù hợp
                                 </td>
                             </tr>
                         ) : (
-                            filtered.map((p, idx) => (
+                            products.map((p, idx) => (
                                 <tr key={p.id} className="hover:bg-gray-50 transition-colors duration-200">
                                     <td className="border border-gray-300 p-3">{idx + 1}</td>
                                     <td className="border border-gray-300 p-3">
@@ -339,8 +440,8 @@ function ProductManager() {
                                         />
                                     </td>
                                     <td className="border border-gray-300 p-3">{p.name}</td>
-                                    <td className="border border-gray-300 p-3">{p.category}</td>
-                                    <td className="border border-gray-300 p-3">{p.specialCategory || 'Không có'}</td>
+                                    <td className="border border-gray-300 p-3">{p.productTypeName || 'Không có'}</td>
+                                    <td className="border border-gray-300 p-3">{p.categoryName || 'Không có'}</td>
                                     <td className="border border-gray-300 p-3">{p.originalPrice.toLocaleString('vi-VN')} VNĐ</td>
                                     <td className="border border-gray-300 p-3">{p.discountedPrice.toLocaleString('vi-VN')} VNĐ</td>
                                     <td className="border border-gray-300 p-3">{p.discount}</td>
@@ -444,22 +545,18 @@ function ProductManager() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block font-medium text-sm">Danh mục *</label>
+                                        <label className="block font-medium text-sm">Loại sản phẩm *</label>
                                         <select
-                                            name="category"
+                                            name="productTypeId"
                                             className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.category}
+                                            value={form.productTypeId}
                                             onChange={handleChange}
                                             required
                                         >
-                                            <option value="">Chọn danh mục</option>
-                                            <option value="Gà rán">Gà rán</option>
-                                            <option value="Mỳ ý">Mỳ ý</option>
-                                            <option value="Pizza">Pizza</option>
-                                            <option value="Cơm">Cơm</option>
-                                            <option value="Salad">Salad</option>
-                                            <option value="Bánh">Bánh</option>
-                                            <option value="Đồ uống">Đồ uống</option>
+                                            <option value="">Chọn loại sản phẩm</option>
+                                            {productTypes.map(pt => (
+                                                <option key={pt.id} value={pt.id}>{pt.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
@@ -480,17 +577,17 @@ function ProductManager() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block font-medium text-sm">Danh mục đặc biệt</label>
+                                        <label className="block font-medium text-sm">Danh mục</label>
                                         <select
-                                            name="specialCategory"
+                                            name="categoryId"
                                             className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.specialCategory}
+                                            value={form.categoryId}
                                             onChange={handleChange}
                                         >
                                             <option value="">Không có</option>
-                                            <option value="FEATURED">Nổi bật</option>
-                                            <option value="NEW">Mới</option>
-                                            <option value="BESTSELLER">Bán chạy</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>
@@ -550,4 +647,3 @@ function ProductManager() {
 }
 
 export default ProductManager;
-
