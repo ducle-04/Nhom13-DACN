@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt, FaList, FaTag } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt, FaList, FaTag, FaNewspaper } from 'react-icons/fa';
 
 const menu = [
     { label: 'Dashboard', icon: <FaTachometerAlt />, path: '/admin' },
@@ -8,6 +8,7 @@ const menu = [
     { label: 'Quản lý loại sản phẩm', icon: <FaList />, path: '/admin/product-types' },
     { label: 'Quản lý danh mục', icon: <FaTag />, path: '/admin/categories' },
     { label: 'Quản lý đơn hàng', icon: <FaShoppingCart />, path: '/admin/orders' },
+    { label: 'Quản lý tin tức', icon: <FaNewspaper />, path: '/admin/news' },
 ];
 
 function Sidebar() {

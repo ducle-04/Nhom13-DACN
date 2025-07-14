@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingCart, X } from 'lucide-react';
+import { ShoppingCart, X, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
 const FeaturedProducts = () => {
@@ -34,13 +34,11 @@ const FeaturedProducts = () => {
                 });
                 // Kiểm tra cấu trúc dữ liệu API
                 const products = Array.isArray(response.data) ? response.data : response.data.products || [];
-                // Lọc sản phẩm thuộc danh mục "Featured" hoặc có tiêu chí nổi bật
+                // Lọc sản phẩm thuộc danh mục "Featured"
                 const filteredProducts = products
-                    .filter(product =>
-                        product.categoryName?.toLowerCase() === 'featured'
-                    )
+                    .filter(product => product.categoryName?.toLowerCase() === 'featured')
                     .map(product => ({
-                        id: product.id || Date.now() + Math.random(), // Đảm bảo id duy nhất
+                        id: product.id || Date.now() + Math.random(),
                         name: product.name || 'Sản phẩm không tên',
                         img: product.img || '/images/placeholder.jpg',
                         originalPrice: product.originalPrice || 0,
@@ -69,15 +67,21 @@ const FeaturedProducts = () => {
 
     if (loading) {
         return (
-            <div className="w-full py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 flex items-center justify-center">
                 <motion.div
                     className="text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="w-16 h-16 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600 text-lg">Đang tải...</p>
+                    <div className="relative mb-8">
+                        <div className="w-20 h-20 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-amber-400 rounded-full animate-spin animate-reverse"></div>
+                    </div>
+                    <div className="backdrop-blur-sm bg-white/20 rounded-2xl p-6 shadow-xl">
+                        <p className="text-slate-700 text-xl font-medium">Đang tải sản phẩm nổi bật...</p>
+                        <p className="text-slate-500 text-sm mt-2">Vui lòng chờ trong giây lát</p>
+                    </div>
                 </motion.div>
             </div>
         );
@@ -85,20 +89,21 @@ const FeaturedProducts = () => {
 
     if (error) {
         return (
-            <div className="w-full py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 flex items-center justify-center">
                 <motion.div
-                    className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md mx-4"
+                    className="text-center p-10 bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl max-w-md mx-4 border border-orange-100"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <X className="w-8 h-8 text-red-500" />
+                    <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <X className="w-10 h-10 text-red-500" />
                     </div>
-                    <p className="text-red-500 text-lg font-medium">{error}</p>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-4">Oops! Có lỗi xảy ra</h3>
+                    <p className="text-red-600 text-lg mb-6 leading-relaxed">{error}</p>
                     <button
                         onClick={() => fetchFeaturedProducts()}
-                        className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+                        className="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg transform hover:scale-105"
                     >
                         Thử lại
                     </button>
@@ -109,76 +114,105 @@ const FeaturedProducts = () => {
 
     return (
         <motion.section
-            className="py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50"
+            className="py-20 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 relative overflow-hidden"
             id="featured-products"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
             variants={sectionVariants}
         >
-            <div className="w-[96%] mx-auto px-4">
+            {/* Background decorative elements */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/20 to-amber-200/20 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-yellow-200/20 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="relative z-10 max-w-7xl mx-auto px-6">
                 <motion.div
-                    className="text-center mb-20"
+                    className="text-center mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                        <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
-                        <span className="text-orange-600 font-medium text-sm tracking-[0.2em] uppercase">
+                    <div className="flex items-center justify-center gap-4 mb-8">
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                        <span className="text-orange-600 font-semibold text-sm tracking-[0.3em] uppercase px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-orange-100">
                             Sản phẩm hot
                         </span>
-                        <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
                     </div>
-                    <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-6 font-montserrat tracking-tight leading-snug">
-                        Thực Đơn Nổi Bật
+                    <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-8 font-montserrat tracking-tight leading-tight">
+                        Sản Phẩm Nổi Bật FoodieHub
                     </h2>
-                    <p className="text-slate-600 text-xl text-center max-w-3xl mb-6 mx-auto leading-relaxed">
-                        Những món ăn được thực khách yêu thích nhất – hương vị tuyệt vời, chất lượng khó cưỡng!
-                    </p>
+                    <div className="max-w-4xl mx-auto">
+                        <p className="text-slate-700 text-2xl leading-relaxed mb-6">
+                            Khám phá những món ăn được yêu thích nhất tại FoodieHub
+                        </p>
+                        <p className="text-slate-500 text-lg leading-relaxed">
+                            Hương vị tuyệt vời, chất lượng khó cưỡng – đặt ngay để thưởng thức!
+                        </p>
+                    </div>
                 </motion.div>
 
                 {optimizedFeaturedProducts.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <ShoppingCart className="w-12 h-12 text-gray-400" />
+                    <motion.div
+                        className="text-center py-20"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                            <ShoppingCart className="w-16 h-16 text-gray-400" />
                         </div>
-                        <p className="text-gray-500 text-lg">Không có sản phẩm nổi bật nào hiện tại.</p>
-                        <Link
-                            to="/menu"
-                            className="inline-flex items-center px-6 py-3 mt-4 bg-gradient-to-r from-amber-400 to-orange-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-amber-500 hover:to-orange-700"
-                        >
-                            Xem thực đơn
-                        </Link>
-                    </div>
+                        <div className="backdrop-blur-sm bg-white/60 rounded-3xl p-10 max-w-md mx-auto shadow-xl border border-gray-100">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chưa có sản phẩm nổi bật</h3>
+                            <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                                Hiện tại chưa có sản phẩm nổi bật nào. Hãy quay lại sau nhé!
+                            </p>
+                            <Link
+                                to="/menu"
+                                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg transform hover:scale-105 group"
+                            >
+                                <ShoppingCart className="w-5 h-5 mr-2" />
+                                Xem thực đơn
+                                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                            </Link>
+                        </div>
+                    </motion.div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {optimizedFeaturedProducts.map((product) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                        {optimizedFeaturedProducts.map((product, index) => (
                             <motion.div
                                 key={product.id}
-                                className="group bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-500 ease-in-out"
-                                whileHover={{ scale: 1.03, y: -8 }}
+                                className="group bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ease-in-out border border-white/20 hover:shadow-2xl"
+                                whileHover={{ scale: 1.02, y: -12 }}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: index * 0.1 }}
                             >
-                                <div className="w-0 h-1 bg-gradient-to-r from-orange-400 to-amber-400 mx-auto group-hover:w-full transition-all duration-500 rounded-full"></div>
-                                <motion.img
-                                    src={product.img}
-                                    alt={product.name}
-                                    className="w-full h-48 object-cover transition-transform duration-500 ease-in-out mt-0.5"
-                                    loading="lazy"
-                                    onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
-                                />
-                                <div className="p-6">
+                                <div className="relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                                    <motion.img
+                                        src={product.img}
+                                        alt={product.name}
+                                        className="w-full h-56 object-cover transition-all duration-700 ease-in-out group-hover:scale-110"
+                                        loading="lazy"
+                                        onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
+                                    />
+                                </div>
+                                <div className="p-8">
                                     <motion.h3
-                                        className="text-xl font-bold text-gray-900 mb-3 transition-all duration-300 group-hover:text-amber-600 group-hover:-translate-y-1"
+                                        className="text-2xl font-bold text-gray-900 mb-4 transition-all duration-300 group-hover:text-orange-600 line-clamp-2"
+                                        whileHover={{ x: 4 }}
                                     >
                                         {product.name}
                                     </motion.h3>
-                                    <div className="flex items-center space-x-3 mb-3 transition-all duration-300 group-hover:-translate-y-1">
+                                    <div className="flex items-center space-x-3 mb-4">
                                         <p className="text-gray-600 line-through text-lg">
                                             {product.originalPrice.toLocaleString('vi-VN')} VNĐ
                                         </p>
                                         <motion.p
-                                            className="text-amber-600 font-bold text-xl"
+                                            className="text-orange-600 font-bold text-xl"
                                             transition={{ duration: 0.3 }}
                                             whileHover={{ scale: 1.05 }}
                                         >
@@ -186,19 +220,20 @@ const FeaturedProducts = () => {
                                         </motion.p>
                                     </div>
                                     {product.discount && (
-                                        <p className="text-sm text-amber-600 font-semibold mb-4">{product.discount}</p>
+                                        <p className="text-sm text-orange-600 font-semibold mb-6">{product.discount}</p>
                                     )}
                                     <Link
                                         to="/menu"
-                                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-600 text-white rounded-full font-semibold transition-all duration-300 group-hover:from-amber-500 group-hover:to-orange-700 group-hover:shadow-lg"
+                                        className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg group-hover:shadow-xl transform hover:scale-105 group/button"
                                     >
                                         <motion.div
                                             className="flex items-center"
-                                            whileHover={{ scale: 1.1 }}
+                                            whileHover={{ scale: 1.05 }}
                                             transition={{ duration: 0.3 }}
                                         >
                                             <ShoppingCart className="w-5 h-5 mr-2" />
                                             Đặt ngay
+                                            <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/button:translate-x-1" />
                                         </motion.div>
                                     </Link>
                                 </div>

@@ -14,6 +14,7 @@ import UserManager from "./Admin/UserManager";
 import ProductManager from "./Admin/ProductManager";
 import ProductTypeManager from "./Admin/ProductTypeManager";
 import CategoryManager from "./Admin/CategoryManager";
+import NewsManager from "./Admin/NewsManager";
 const PrivatePage = [
 
 ]; // Add private pages here if needed
@@ -32,6 +33,7 @@ const PublicPage = [
     { path: "/admin/products", component: ProductManager, layout: AdminLayout },
     { path: "/admin/product-types", component: ProductTypeManager, layout: AdminLayout },
     { path: "/admin/categories", component: CategoryManager, layout: AdminLayout },
+    { path: "/admin/news", component: NewsManager, layout: AdminLayout },
 
 
 ];
