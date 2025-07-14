@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { FaUserEdit, FaTrash, FaUserPlus } from 'react-icons/fa';
+import { FaEye, FaTrash, FaUserPlus } from 'react-icons/fa';
 import axios from 'axios';
 
 function UserManager() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [editingUser, setEditingUser] = useState(null);
+    const [viewingUser, setViewingUser] = useState(null);
     const [addingUser, setAddingUser] = useState(false);
-    const [updateLoading, setUpdateLoading] = useState(false);
     const [createLoading, setCreateLoading] = useState(false);
-    const [editForm, setEditForm] = useState({ email: '', enabled: true, roles: ['USER'], fullname: '', address: '', phoneNumber: '' });
     const [addForm, setAddForm] = useState({ username: '', email: '', password: '', enabled: true, fullname: '', address: '', phoneNumber: '' });
 
     const token = localStorage.getItem('token');
@@ -68,72 +66,9 @@ function UserManager() {
         }
     };
 
-    // Bắt đầu sửa
-    const handleEdit = (user) => {
-        setEditingUser(user);
-        setEditForm({
-            email: user.email,
-            enabled: user.status === 'active',
-            roles: user.roles,
-            fullname: user.fullname,
-            address: user.address,
-            phoneNumber: user.phoneNumber,
-        });
-    };
-
-    // Kiểm tra định dạng form chỉnh sửa
-    const validateEditForm = () => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(editForm.email)) {
-            setError('Email không hợp lệ.');
-            return false;
-        }
-        if (!editForm.fullname.trim()) {
-            setError('Họ và tên không được để trống.');
-            return false;
-        }
-        return true;
-    };
-
-    // Cập nhật người dùng
-    const handleUpdate = async () => {
-        if (!validateEditForm()) return;
-
-        setUpdateLoading(true);
-        try {
-            await axios.put(`http://localhost:8080/api/user/update/${editingUser.id}`, {
-                email: editForm.email,
-                enabled: editForm.enabled,
-                roles: editForm.roles,
-                fullname: editForm.fullname,
-                address: editForm.address || undefined,
-                phoneNumber: editForm.phoneNumber || undefined,
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            const updated = users.map(u =>
-                u.id === editingUser.id
-                    ? {
-                        ...u,
-                        email: editForm.email,
-                        fullname: editForm.fullname,
-                        address: editForm.address,
-                        phoneNumber: editForm.phoneNumber,
-                        status: editForm.enabled ? 'active' : 'inactive',
-                        enabled: editForm.enabled,
-                        roles: editForm.roles,
-                    }
-                    : u
-            );
-            setUsers(updated);
-            setEditingUser(null);
-            setError(null);
-        } catch (err) {
-            setError(err.response?.data || 'Không thể cập nhật người dùng.');
-        } finally {
-            setUpdateLoading(false);
-        }
+    // Xem chi tiết người dùng
+    const handleView = (user) => {
+        setViewingUser(user);
     };
 
     // Bắt đầu thêm người dùng
@@ -210,7 +145,7 @@ function UserManager() {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 font-montserrat">Quản lý Người dùng</h2>
+                <h2 className="text-2xl font-bold text-gray-800 font-montserrat">Quản lý Khách Hàng</h2>
                 <button
                     className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
                     onClick={handleAddUser}
@@ -222,7 +157,7 @@ function UserManager() {
                 <table className="w-full border-collapse min-w-[800px]">
                     <thead>
                         <tr className="bg-gray-200">
-                            <th className="border border-gray-300 p-3 text-left">Username</th>
+                            <th className="border border-gray-300 p-3 text-left">Tên đăng nhập</th>
                             <th className="border border-gray-300 p-3 text-left">Họ và Tên</th>
                             <th className="border border-gray-300 p-3 text-left">Email</th>
                             <th className="border border-gray-300 p-3 text-left">Địa chỉ</th>
@@ -253,16 +188,16 @@ function UserManager() {
                                     </td>
                                     <td className="border border-gray-300 p-3 flex space-x-2">
                                         <button
-                                            className="flex items-center px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200"
-                                            onClick={() => handleEdit(user)}
+                                            className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                                            onClick={() => handleView(user)}
                                         >
-                                            <FaUserEdit className="mr-1" /> Chỉnh sửa
+                                            <FaEye className="mr-1" />
                                         </button>
                                         <button
                                             className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
                                             onClick={() => handleDelete(user.id)}
                                         >
-                                            <FaTrash className="mr-1" /> Xóa
+                                            <FaTrash className="mr-1" />
                                         </button>
                                     </td>
                                 </tr>
@@ -272,88 +207,44 @@ function UserManager() {
                 </table>
             </div>
 
-            {/* Modal chỉnh sửa */}
-            {editingUser && (
+            {/* Modal xem chi tiết */}
+            {viewingUser && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                        <h3 className="text-lg font-bold mb-4">Chỉnh sửa người dùng</h3>
-                        <div className="space-y-3">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+                        <h3 className="text-lg font-bold mb-4">Chi tiết người dùng</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block font-medium">Tên đăng nhập</label>
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.username}</p>
+                            </div>
                             <div>
                                 <label className="block font-medium">Họ và Tên</label>
-                                <input
-                                    type="text"
-                                    className="w-full border p-2 rounded"
-                                    value={editForm.fullname}
-                                    onChange={(e) => setEditForm({ ...editForm, fullname: e.target.value })}
-                                    required
-                                    disabled={updateLoading}
-                                />
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.fullname || 'N/A'}</p>
                             </div>
                             <div>
                                 <label className="block font-medium">Email</label>
-                                <input
-                                    type="email"
-                                    className="w-full border p-2 rounded"
-                                    value={editForm.email}
-                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                    required
-                                    disabled={updateLoading}
-                                />
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.email || 'N/A'}</p>
                             </div>
                             <div>
                                 <label className="block font-medium">Địa chỉ</label>
-                                <input
-                                    type="text"
-                                    className="w-full border p-2 rounded"
-                                    value={editForm.address}
-                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                                    disabled={updateLoading}
-                                />
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.address || 'N/A'}</p>
                             </div>
                             <div>
                                 <label className="block font-medium">Số điện thoại</label>
-                                <input
-                                    type="tel"
-                                    className="w-full border p-2 rounded"
-                                    value={editForm.phoneNumber}
-                                    onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                    disabled={updateLoading}
-                                />
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.phoneNumber || 'N/A'}</p>
                             </div>
                             <div>
                                 <label className="block font-medium">Trạng thái</label>
-                                <select
-                                    className="w-full border p-2 rounded"
-                                    value={editForm.enabled ? 'active' : 'inactive'}
-                                    onChange={(e) => setEditForm({ ...editForm, enabled: e.target.value === 'active' })}
-                                    disabled={updateLoading}
-                                >
-                                    <option value="active">Hoạt động</option>
-                                    <option value="inactive">Ngừng</option>
-                                </select>
+                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.status === 'active' ? 'Hoạt động' : 'Ngừng'}</p>
                             </div>
+
                         </div>
-                        {error && <p className="text-red-500 text-sm mt-3 text-center">{error}</p>}
-                        <div className="flex justify-end mt-4 space-x-2">
+                        <div className="flex justify-end mt-4">
                             <button
                                 className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
-                                onClick={() => setEditingUser(null)}
-                                disabled={updateLoading}
+                                onClick={() => setViewingUser(null)}
                             >
-                                Hủy
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
-                                onClick={handleUpdate}
-                                disabled={updateLoading}
-                            >
-                                {updateLoading && (
-                                    <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                )}
-                                {updateLoading ? 'Đang lưu...' : 'Lưu'}
+                                Đóng
                             </button>
                         </div>
                     </div>

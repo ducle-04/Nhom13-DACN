@@ -461,13 +461,13 @@ function ProductManager() {
                                             className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
                                             onClick={() => handleOpenModal('edit', p)}
                                         >
-                                            <FaEdit className="mr-1" /> Chỉnh sửa
+                                            <FaEdit className="mr-1" />
                                         </button>
                                         <button
                                             className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
                                             onClick={() => handleDelete(p.id)}
                                         >
-                                            <FaTrash className="mr-1" /> Xóa
+                                            <FaTrash className="mr-1" />
                                         </button>
                                     </td>
                                 </tr>

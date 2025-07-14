@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, Filter } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { useCart } from '../../../Context/CartContext';
+import Cart from '../../../components/Layout/DefautLayout/UserLayout/Cart';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Menu() {
     const [products, setProducts] = useState([]);
@@ -14,20 +18,22 @@ function Menu() {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
-    // Lấy tham số search từ URL
+    const { addToCart } = useCart();
     const location = useLocation();
     const navigate = useNavigate();
     const searchParams = new URLSearchParams(location.search);
     const searchQuery = searchParams.get('search') || '';
 
-    // Lấy sản phẩm, loại sản phẩm và danh mục từ backend
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-
-                // Lấy danh sách sản phẩm
                 const productResponse = await axios.get('http://localhost:8080/api/products', {
                     timeout: 5000,
                 });
@@ -47,13 +53,11 @@ function Menu() {
                 setProducts(enrichedProducts);
                 setFilteredProducts(enrichedProducts);
 
-                // Lấy danh sách loại sản phẩm
                 const productTypeResponse = await axios.get('http://localhost:8080/api/product-types', {
                     timeout: 5000,
                 });
                 setProductTypes(productTypeResponse.data);
 
-                // Lấy danh sách danh mục
                 const categoryResponse = await axios.get('http://localhost:8080/api/categories', {
                     timeout: 5000,
                 });
@@ -75,32 +79,24 @@ function Menu() {
         fetchData();
     }, [navigate]);
 
-    // Lọc sản phẩm dựa trên searchQuery, loại sản phẩm, danh mục và khoảng giá
     useEffect(() => {
         let result = [...products];
-
-        // Ưu tiên lọc theo searchQuery nếu có
         if (searchQuery) {
             result = result.filter(product =>
                 product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 product.description.toLowerCase().includes(searchQuery.toLowerCase())
             );
         } else {
-            // Lọc theo loại sản phẩm
             if (selectedProductType !== 'Tất cả') {
                 result = result.filter(product =>
                     product.productTypeName.toLowerCase() === selectedProductType.toLowerCase()
                 );
             }
-
-            // Lọc theo danh mục
             if (selectedCategory !== 'Tất cả') {
                 result = result.filter(product =>
                     product.categoryName.toLowerCase() === selectedCategory.toLowerCase()
                 );
             }
-
-            // Lọc theo khoảng giá
             if (selectedPriceRange !== 'Tất cả') {
                 let min, max;
                 if (selectedPriceRange === 'under50000') {
@@ -118,11 +114,9 @@ function Menu() {
                 });
             }
         }
-
         setFilteredProducts(result);
     }, [searchQuery, selectedProductType, selectedCategory, selectedPriceRange, products]);
 
-    // Tải lại danh sách sản phẩm khi xóa bộ lọc
     const resetFilters = async () => {
         setSelectedProductType('Tất cả');
         setSelectedCategory('Tất cả');
@@ -166,6 +160,12 @@ function Menu() {
         visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
     };
 
+    const modalVariants = {
+        hidden: { opacity: 0, scale: 0.8 },
+        visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+        exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2, ease: 'easeIn' } },
+    };
+
     const calculateDiscount = (originalPrice, discountedPrice) => {
         const origPrice = parseInt(originalPrice);
         const discPrice = parseInt(discountedPrice);
@@ -173,8 +173,36 @@ function Menu() {
         return Math.round(((origPrice - discPrice) / origPrice) * 100);
     };
 
-    const addToCart = (product) => {
-        console.log('Đã thêm vào giỏ hàng:', product);
+    const orderNow = (product) => {
+        console.log('Đặt ngay:', product);
+        setIsModalOpen(false);
+    };
+
+    const openProductModal = (product) => {
+        setSelectedProduct(product);
+        setQuantity(1);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedProduct(null);
+        setQuantity(1);
+    };
+
+    const toggleCart = () => {
+        setIsCartOpen(!isCartOpen);
+    };
+
+    const handleAddToCart = async (productId, quantity) => {
+        try {
+            await addToCart(productId, quantity);
+            toast.success('Thêm vào giỏ hàng thành công!');
+            setIsModalOpen(false);
+            setIsCartOpen(true);
+        } catch (error) {
+            toast.error(`Lỗi: ${error.response?.data || 'Không thể thêm vào giỏ hàng'}`);
+        }
     };
 
     if (loading) {
@@ -213,7 +241,194 @@ function Menu() {
 
     return (
         <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50">
-            {/* Header Section với hiệu ứng gradient động */}
+            <ToastContainer position="top-right" autoClose={3000} />
+            {/* Modal chi tiết sản phẩm */}
+            <AnimatePresence>
+                {isModalOpen && selectedProduct && (
+                    <motion.div
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={closeModal}
+                    >
+                        <motion.div
+                            className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl"
+                            variants={modalVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Header với nút đóng */}
+                            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
+                                <h2 className="text-2xl font-bold text-gray-900 truncate pr-4">{selectedProduct.name}</h2>
+                                <button
+                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
+                                    onClick={closeModal}
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Nội dung chính */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
+                                {/* Cột trái - Hình ảnh */}
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <img
+                                            src={selectedProduct.img}
+                                            alt={selectedProduct.name}
+                                            className="w-full h-80 lg:h-96 object-cover rounded-xl shadow-md"
+                                            onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
+                                        />
+                                        {calculateDiscount(selectedProduct.originalPrice, selectedProduct.discountedPrice) > 0 && (
+                                            <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                                -{calculateDiscount(selectedProduct.originalPrice, selectedProduct.discountedPrice)}%
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-4">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Có sẵn trên:</h3>
+                                        <div className="flex flex-wrap gap-3">
+                                            <div className="flex items-center bg-orange-100 text-orange-600 px-3 py-2 rounded-full">
+                                                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L9 7V9C9 11.66 11.34 14 14 14V22H10V14C6.69 14 4 11.31 4 8V6L10 0L14 4L18 8V10C18 12.21 16.21 14 14 14Z" />
+                                                </svg>
+                                                <span className="text-sm font-medium">ShopeeFood</span>
+                                            </div>
+                                            <div className="flex items-center bg-green-100 text-green-600 px-3 py-2 rounded-full">
+                                                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2ZM12 4.14L20 8.25V10C20 15.25 16.87 18.96 12 20.18C7.13 18.96 4 15.25 4 10V8.25L12 4.14ZM8 11L11 14L16 9L14.59 7.58L11 11.17L9.41 9.59L8 11Z" />
+                                                </svg>
+                                                <span className="text-sm font-medium">GrabFood</span>
+                                            </div>
+                                            <div className="flex items-center bg-blue-100 text-blue-600 px-3 py-2 rounded-full">
+                                                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM12 7C13.11 7 14 7.89 14 9C14 10.11 13.11 11 12 11C10.89 11 10 10.11 10 9C10 7.89 10.89 7 12 7ZM16.24 7.76C15.07 6.59 13.54 6 12 6S8.93 6.59 7.76 7.76C6.59 8.93 6 10.46 6 12S6.59 15.07 7.76 16.24C8.93 17.41 10.46 18 12 18S15.07 17.41 16.24 16.24C17.41 15.07 18 13.54 18 12S17.41 8.93 16.24 7.76Z" />
+                                                </svg>
+                                                <span className="text-sm font-medium">Baemin</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <p className="text-gray-600 leading-relaxed">
+                                            {selectedProduct.description || 'Không có mô tả'}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Loại sản phẩm:</span>
+                                            <span className="font-medium text-gray-900">{selectedProduct.productTypeName}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Danh mục:</span>
+                                            <span className="font-medium text-gray-900">
+                                                {selectedProduct.categoryName === 'FEATURED' ? 'Nổi bật' :
+                                                    selectedProduct.categoryName === 'NEW' ? 'Mới' :
+                                                        selectedProduct.categoryName === 'BESTSELLER' ? 'Bán chạy' :
+                                                            selectedProduct.categoryName === 'PROMOTIONS' ? 'Giảm giá sâu' :
+                                                                selectedProduct.categoryName || 'Không có'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600">Tình trạng:</span>
+                                            <span className={`font-medium ${selectedProduct.status === 'AVAILABLE' ? 'text-green-600' :
+                                                selectedProduct.status === 'OUT_OF_STOCK' ? 'text-red-600' : 'text-gray-600'}`}>
+                                                {selectedProduct.status === 'AVAILABLE' ? 'Có sẵn' :
+                                                    selectedProduct.status === 'OUT_OF_STOCK' ? 'Hết hàng' :
+                                                        selectedProduct.status === 'DISCONTINUED' ? 'Ngừng kinh doanh' :
+                                                            selectedProduct.status || 'Không xác định'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                {calculateDiscount(selectedProduct.originalPrice, selectedProduct.discountedPrice) > 0 && (
+                                                    <span className="text-gray-400 line-through text-lg">
+                                                        {parseInt(selectedProduct.originalPrice).toLocaleString('vi-VN')}đ
+                                                    </span>
+                                                )}
+                                                <span className="text-red-500 font-bold text-2xl">
+                                                    {parseInt(selectedProduct.discountedPrice).toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </div>
+                                            {calculateDiscount(selectedProduct.originalPrice, selectedProduct.discountedPrice) > 0 && (
+                                                <span className="text-green-600 font-semibold">
+                                                    Tiết kiệm {calculateDiscount(selectedProduct.originalPrice, selectedProduct.discountedPrice)}%
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-4">
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Số lượng:</h3>
+                                        <div className="flex items-center justify-center space-x-4">
+                                            <motion.button
+                                                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                                                className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <span className="text-lg font-semibold">-</span>
+                                            </motion.button>
+                                            <input
+                                                type="number"
+                                                value={quantity}
+                                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                                className="w-20 text-center border-2 border-gray-200 rounded-lg py-3 text-gray-700 font-semibold focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                                                min="1"
+                                            />
+                                            <motion.button
+                                                onClick={() => setQuantity(prev => prev + 1)}
+                                                className="w-12 h-12 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 shadow-sm"
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <span className="text-lg font-semibold">+</span>
+                                            </motion.button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="sticky bottom-0 bg-white border-t border-gray-100 p-6">
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <motion.button
+                                        onClick={() => handleAddToCart(selectedProduct.id, quantity)}
+                                        className="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <ShoppingCart className="w-5 h-5 mr-2" />
+                                        Thêm vào giỏ hàng
+                                    </motion.button>
+                                    <motion.button
+                                        onClick={() => orderNow({
+                                            id: selectedProduct.id,
+                                            name: selectedProduct.name,
+                                            price: parseInt(selectedProduct.discountedPrice),
+                                            quantity: quantity,
+                                            image: selectedProduct.img
+                                        })}
+                                        className="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        Đặt ngay
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Giỏ hàng */}
+            <Cart isOpen={isCartOpen} onClose={toggleCart} />
+
+            {/* Header Section */}
             <motion.section
                 className="py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 shadow-lg relative overflow-hidden"
                 initial="hidden"
@@ -221,12 +436,10 @@ function Menu() {
                 viewport={{ once: true, amount: 0.3 }}
                 variants={sectionVariants}
             >
-                {/* Background decorative elements */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-3xl"></div>
                     <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-yellow-200/30 to-orange-200/30 rounded-full blur-3xl"></div>
                 </div>
-
                 <div className="relative z-10">
                     <motion.div
                         className="flex items-center justify-center gap-4 mb-8"
@@ -250,7 +463,6 @@ function Menu() {
                             transition={{ duration: 1, delay: 0.5 }}
                         ></motion.div>
                     </motion.div>
-
                     <div className="container mx-auto px-4 text-center">
                         <motion.h1
                             className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-6 font-montserrat tracking-tight leading-tight"
@@ -273,7 +485,6 @@ function Menu() {
             </motion.section>
 
             <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row gap-8">
-                {/* Products Section */}
                 <section className="w-full lg:w-3/4">
                     {filteredProducts.length === 0 ? (
                         <div className="text-center py-16">
@@ -291,7 +502,6 @@ function Menu() {
                                         key={product.id}
                                         className="group bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl relative"
                                     >
-                                        {/* Discount Badge */}
                                         {discount > 0 && (
                                             <motion.div
                                                 className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10"
@@ -302,11 +512,7 @@ function Menu() {
                                                 -{discount}%
                                             </motion.div>
                                         )}
-
-                                        {/* Top gradient line */}
                                         <div className="w-0 h-1 bg-gradient-to-r from-orange-400 to-amber-400 mx-auto group-hover:w-full transition-all duration-700 rounded-b-full"></div>
-
-                                        {/* Product Image */}
                                         <div className="relative overflow-hidden">
                                             <img
                                                 src={product.img}
@@ -315,17 +521,12 @@ function Menu() {
                                                 loading="lazy"
                                                 onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
                                             />
-                                            {/* Overlay gradient */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                                         </div>
-
-                                        {/* Product Details */}
                                         <div className="p-6 text-center">
                                             <h3 className="text-xl font-bold text-gray-900 mb-4 transition-all duration-300 group-hover:text-amber-600">
                                                 {product.name}
                                             </h3>
-
-                                            {/* Rating */}
                                             <div className="flex justify-center items-center mb-4">
                                                 <div className="flex text-yellow-400">
                                                     {[...Array(5)].map((_, i) => (
@@ -335,16 +536,14 @@ function Menu() {
                                                     ))}
                                                 </div>
                                             </div>
-
-                                            {/* Price */}
                                             <div className="flex justify-center items-center space-x-3 mb-6">
-                                                <p className="text-gray-400 line-through text-sm">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
+                                                {discount > 0 && (
+                                                    <p className="text-gray-400 line-through text-sm">{parseInt(product.originalPrice).toLocaleString('vi-VN')}đ</p>
+                                                )}
                                                 <p className="text-red-500 font-bold text-xl">{parseInt(product.discountedPrice).toLocaleString('vi-VN')}đ</p>
                                             </div>
-
-                                            {/* Add to Cart Button */}
                                             <motion.button
-                                                onClick={() => addToCart({ id: product.id, name: product.name, price: parseInt(product.discountedPrice), quantity: 1, image: product.img })}
+                                                onClick={() => openProductModal(product)}
                                                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
@@ -360,8 +559,6 @@ function Menu() {
                         </div>
                     )}
                 </section>
-
-                {/* Filter Sidebar */}
                 <motion.aside
                     className="w-full lg:w-1/4 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-orange-100 sticky top-6 h-fit"
                     initial="hidden"
@@ -386,8 +583,6 @@ function Menu() {
                             </motion.button>
                         )}
                     </div>
-
-                    {/* Product Type Filter */}
                     <motion.div
                         className="mb-10"
                         initial={{ opacity: 0, y: 20 }}
@@ -429,8 +624,6 @@ function Menu() {
                             ))}
                         </div>
                     </motion.div>
-
-                    {/* Category Filter */}
                     <motion.div
                         className="mb-10"
                         initial={{ opacity: 0, y: 20 }}
@@ -472,8 +665,6 @@ function Menu() {
                             ))}
                         </div>
                     </motion.div>
-
-                    {/* Price Range Filter */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -504,7 +695,7 @@ function Menu() {
                                             className="text-orange-500 font-bold"
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            transition={{ type: "spring", stiffness: 200 }}
+                                            transition={{ type: 'spring', stiffness: 200 }}
                                         >
                                             ✓
                                         </motion.span>

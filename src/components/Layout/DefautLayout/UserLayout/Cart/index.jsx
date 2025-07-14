@@ -1,31 +1,9 @@
-
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { useCart } from '../../../../../Context/CartContext';
 
 function Cart({ isOpen, onClose }) {
-    // Dữ liệu giả cho giỏ hàng (có thể thay bằng API hoặc context)
-    const [cartItems, setCartItems] = useState([
-        { id: 1, name: 'Pizza Margherita', price: 150000, quantity: 2, image: '/images/pizza.jpg' },
-        { id: 2, name: 'Mỳ Ý Carbonara', price: 120000, quantity: 1, image: '/images/my-y.jpg' },
-    ]);
-
-    // Tính tổng giá
-    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-
-    // Xóa món hàng
-    const removeItem = (id) => {
-        setCartItems(cartItems.filter((item) => item.id !== id));
-    };
-
-    // Cập nhật số lượng
-    const updateQuantity = (id, delta) => {
-        setCartItems(
-            cartItems.map((item) =>
-                item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-            )
-        );
-    };
+    const { cartItems, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
 
     // Animation variants cho overlay
     const overlayVariants = {
@@ -99,6 +77,7 @@ function Cart({ isOpen, onClose }) {
                                             alt={item.name}
                                             className="w-16 h-16 object-cover rounded-lg"
                                             loading="lazy"
+                                            onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
                                         />
                                         <div className="flex-1">
                                             <h3 className="text-gray-800 font-semibold text-base">{item.name}</h3>
@@ -108,7 +87,7 @@ function Cart({ isOpen, onClose }) {
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <button
-                                                onClick={() => updateQuantity(item.id, -1)}
+                                                onClick={() => updateQuantity(item.productId, -1)}
                                                 className="w-8 h-8 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors duration-200"
                                                 aria-label="Giảm số lượng"
                                             >
@@ -116,14 +95,14 @@ function Cart({ isOpen, onClose }) {
                                             </button>
                                             <span className="text-gray-800 font-medium">{item.quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(item.id, 1)}
+                                                onClick={() => updateQuantity(item.productId, 1)}
                                                 className="w-8 h-8 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors duration-200"
                                                 aria-label="Tăng số lượng"
                                             >
                                                 +
                                             </button>
                                             <button
-                                                onClick={() => removeItem(item.id)}
+                                                onClick={() => removeItem(item.productId)}
                                                 className="text-red-500 hover:text-red-600 transition-colors duration-200"
                                                 aria-label={`Xóa ${item.name}`}
                                             >
@@ -146,8 +125,20 @@ function Cart({ isOpen, onClose }) {
                                     className="w-full mt-4 bg-amber-500 text-white p-3 rounded-lg hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors duration-300"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => {
+                                        // Logic chuyển hướng hoặc mở modal thanh toán
+                                        alert('Chuyển đến trang thanh toán...');
+                                    }}
                                 >
                                     Thanh Toán
+                                </motion.button>
+                                <motion.button
+                                    className="w-full mt-2 bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition-colors duration-300"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={clearCart}
+                                >
+                                    Xóa Giỏ Hàng
                                 </motion.button>
                             </div>
                         )}

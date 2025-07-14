@@ -113,98 +113,102 @@ function CategoryManager() {
         }
     };
 
-    if (loading) return <div className="p-6 text-center">Đang tải...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="p-6 text-center text-gray-600 text-lg">Đang tải...</div>;
+    if (error) return <div className="p-6 text-center text-red-600 text-lg">{error}</div>;
 
     return (
-        <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 font-montserrat">Quản lý Danh Mục</h2>
-            <button
-                onClick={() => handleOpenModal('add')}
-                className="mb-4 flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
-            >
-                <FaPlus className="mr-2" /> Thêm danh mục
-            </button>
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                <table className="min-w-full border-collapse">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border border-gray-300 p-3 text-left">ID</th>
-                            <th className="border border-gray-300 p-3 text-left">Tên</th>
-                            <th className="border border-gray-300 p-3 text-left">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {categories.length === 0 ? (
-                            <tr>
-                                <td colSpan="3" className="text-center text-gray-500 py-4">
-                                    Không có danh mục nào
-                                </td>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-bold text-gray-900 font-montserrat">Quản lý Danh Mục</h2>
+                    <button
+                        onClick={() => handleOpenModal('add')}
+                        className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-200"
+                    >
+                        <FaPlus className="mr-2" /> Thêm danh mục
+                    </button>
+                </div>
+                <div className="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-100">
+                    <table className="min-w-full border-collapse">
+                        <thead>
+                            <tr className="bg-gradient-to-r from-gray-100 to-gray-200">
+                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">#</th>
+                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">Tên</th>
+                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">Thao tác</th>
                             </tr>
-                        ) : (
-                            categories.map(cat => (
-                                <tr key={cat.id} className="hover:bg-gray-50 transition-colors duration-200">
-                                    <td className="border border-gray-300 p-3">{cat.id}</td>
-                                    <td className="border border-gray-300 p-3">{cat.name}</td>
-                                    <td className="border border-gray-300 p-3 flex space-x-2">
-                                        <button
-                                            onClick={() => handleOpenModal('edit', cat)}
-                                            className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                                        >
-                                            <FaEdit className="mr-1" /> Chỉnh sửa
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(cat.id)}
-                                            className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-                                        >
-                                            <FaTrash className="mr-1" /> Xóa
-                                        </button>
+                        </thead>
+                        <tbody>
+                            {categories.length === 0 ? (
+                                <tr>
+                                    <td colSpan="3" className="text-center text-gray-500 py-6">
+                                        Không có danh mục nào
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <h3 className="text-lg font-bold mb-4">
-                            {modalType === 'add' ? 'Thêm danh mục' : 'Chỉnh sửa danh mục'}
-                        </h3>
-                        {error && <div className="text-red-500 mb-4">{error}</div>}
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-4">
-                                <label className="block font-medium text-sm">Tên danh mục *</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={form.name}
-                                    onChange={handleChange}
-                                    className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                    placeholder="Nhập tên danh mục"
-                                />
-                            </div>
-                            <div className="flex justify-end space-x-2">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200"
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                                >
-                                    {modalType === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                            ) : (
+                                categories.map((cat, index) => (
+                                    <tr key={cat.id} className="hover:bg-gray-50 transition-all duration-200">
+                                        <td className="border-b border-gray-200 p-4 text-gray-700">{index + 1}</td>
+                                        <td className="border-b border-gray-200 p-4 text-gray-700">{cat.name}</td>
+                                        <td className="border-b border-gray-200 p-4 flex space-x-2">
+                                            <button
+                                                onClick={() => handleOpenModal('edit', cat)}
+                                                className="p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-all duration-200"
+                                            >
+                                                <FaEdit />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(cat.id)}
+                                                className="p-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-all duration-200"
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+                {showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">
+                                {modalType === 'add' ? 'Thêm danh mục' : 'Chỉnh sửa danh mục'}
+                            </h3>
+                            {error && <div className="text-red-600 mb-4 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="block font-medium text-sm text-gray-700 mb-1">Tên danh mục *</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                                        required
+                                        placeholder="Nhập tên danh mục"
+                                    />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200"
+                                    >
+                                        Hủy
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+                                    >
+                                        {modalType === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
