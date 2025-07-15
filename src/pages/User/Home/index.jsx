@@ -81,52 +81,286 @@ function Home() {
     return (
         <div className="w-full">
             {/* Slider */}
-            <div className="relative h-[500px] lg:h-[600px] overflow-hidden">
-                <AnimatePresence>
+            <div className="relative h-[500px] lg:h-[600px] overflow-hidden rounded-3xl shadow-2xl group">
+                {/* Enhanced background with multiple gradients */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30 z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10"></div>
+
+                {/* Animated border gradient - more vibrant */}
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-yellow-500/40 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm animate-pulse"></div>
+
+                <AnimatePresence mode="wait">
                     {sliderImages.map((slide, index) => (
                         index === currentSlide && (
                             <motion.div
                                 key={index}
-                                className="absolute w-full h-full"
+                                className="absolute w-full h-full rounded-3xl overflow-hidden"
                                 variants={slideVariants}
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
                             >
-                                <Link to="/menu">
-                                    <img
+                                <Link to="/menu" className="block w-full h-full relative group/image">
+                                    {/* Multi-layer overlay for depth */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 z-20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-amber-500/10 z-20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-700"></div>
+
+                                    {/* Enhanced shimmer effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover/image:translate-x-full transition-transform duration-1200 ease-out z-30"></div>
+
+                                    <motion.img
                                         src={slide.src}
                                         alt={`Slide ${index + 1}`}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/image:scale-110 filter brightness-110"
                                         loading="lazy"
+                                        whileHover={{ scale: 1.05 }}
+                                        transition={{ duration: 0.7 }}
                                     />
+
+                                    {/* More floating particles with varied animations */}
+                                    <div className="absolute inset-0 pointer-events-none z-20">
+                                        <motion.div
+                                            className="absolute top-20 left-20 w-4 h-4 bg-orange-400/70 rounded-full opacity-0 group-hover/image:opacity-100"
+                                            animate={{
+                                                scale: [1, 1.5, 1],
+                                                opacity: [0, 0.7, 0]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                delay: 0.1
+                                            }}
+                                        />
+                                        <motion.div
+                                            className="absolute top-40 right-32 w-3 h-3 bg-amber-400/70 rounded-full opacity-0 group-hover/image:opacity-100"
+                                            animate={{
+                                                scale: [1, 1.3, 1],
+                                                opacity: [0, 0.8, 0]
+                                            }}
+                                            transition={{
+                                                duration: 2.5,
+                                                repeat: Infinity,
+                                                delay: 0.3
+                                            }}
+                                        />
+                                        <motion.div
+                                            className="absolute bottom-32 left-40 w-3.5 h-3.5 bg-yellow-400/70 rounded-full opacity-0 group-hover/image:opacity-100"
+                                            animate={{
+                                                scale: [1, 1.4, 1],
+                                                opacity: [0, 0.6, 0]
+                                            }}
+                                            transition={{
+                                                duration: 3,
+                                                repeat: Infinity,
+                                                delay: 0.5
+                                            }}
+                                        />
+                                        <motion.div
+                                            className="absolute bottom-20 right-20 w-2.5 h-2.5 bg-orange-300/70 rounded-full opacity-0 group-hover/image:opacity-100"
+                                            animate={{
+                                                scale: [1, 1.6, 1],
+                                                opacity: [0, 0.9, 0]
+                                            }}
+                                            transition={{
+                                                duration: 2.2,
+                                                repeat: Infinity,
+                                                delay: 0.7
+                                            }}
+                                        />
+                                        <motion.div
+                                            className="absolute top-1/2 left-1/3 w-2 h-2 bg-rose-400/60 rounded-full opacity-0 group-hover/image:opacity-100"
+                                            animate={{
+                                                scale: [1, 1.2, 1],
+                                                opacity: [0, 0.5, 0]
+                                            }}
+                                            transition={{
+                                                duration: 1.8,
+                                                repeat: Infinity,
+                                                delay: 0.9
+                                            }}
+                                        />
+                                    </div>
                                 </Link>
                             </motion.div>
                         )
                     ))}
                 </AnimatePresence>
 
-                <button
+                {/* Enhanced Navigation Buttons with premium styling */}
+                <motion.button
                     onClick={goToPrevSlide}
-                    className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/90 p-3 rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
+                    className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-md p-4 rounded-full shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 z-30 group/btn border border-white/30"
+                    whileHover={{ scale: 1.1, rotate: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
                 >
-                    <ChevronLeft className="w-8 h-8 text-gray-900" />
-                </button>
-                <button
-                    onClick={goToNextSlide}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/90 p-3 rounded-full shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
-                >
-                    <ChevronRight className="w-8 h-8 text-gray-900" />
-                </button>
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-400/30 to-amber-400/30 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                    <motion.div
+                        animate={{ x: [-2, 2, -2] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <ChevronLeft className="w-8 h-8 text-gray-900 relative z-10 drop-shadow-sm" />
+                    </motion.div>
+                </motion.button>
 
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
-                    {sliderImages.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => goToSlide(index)}
-                            className={`w-4 h-4 rounded-full transition-all duration-300 ${currentSlide === index ? 'bg-amber-400 scale-125' : 'bg-white/60 hover:bg-white/90'}`}
-                        />
-                    ))}
+                <motion.button
+                    onClick={goToNextSlide}
+                    className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-md p-4 rounded-full shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 z-30 group/btn border border-white/30"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-400/30 to-amber-400/30 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                    <motion.div
+                        animate={{ x: [2, -2, 2] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <ChevronRight className="w-8 h-8 text-gray-900 relative z-10 drop-shadow-sm" />
+                    </motion.div>
+                </motion.button>
+
+                {/* Enhanced Dots Navigation with premium styling */}
+                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
+                    <div className="bg-black/30 backdrop-blur-md rounded-full px-8 py-4 border border-white/30 shadow-xl">
+                        <div className="flex space-x-4">
+                            {sliderImages.map((_, index) => (
+                                <motion.button
+                                    key={index}
+                                    onClick={() => goToSlide(index)}
+                                    className={`relative transition-all duration-300 ${currentSlide === index
+                                        ? 'w-10 h-5 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full shadow-lg'
+                                        : 'w-5 h-5 bg-white/70 hover:bg-white/90 rounded-full shadow-md'
+                                        }`}
+                                    whileHover={{ scale: 1.2 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                                >
+                                    {/* Active dot enhanced glow effect */}
+                                    {currentSlide === index && (
+                                        <motion.div
+                                            className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full blur-md opacity-60"
+                                            animate={{
+                                                scale: [1, 1.3, 1],
+                                                opacity: [0.6, 0.9, 0.6]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                ease: "easeInOut"
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* Hover ripple effect */}
+                                    <motion.div
+                                        className="absolute inset-0 bg-white/40 rounded-full opacity-0"
+                                        whileHover={{
+                                            scale: [1, 1.8, 1],
+                                            opacity: [0, 0.4, 0]
+                                        }}
+                                        transition={{ duration: 0.8 }}
+                                    />
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Enhanced progress bar with gradient */}
+                <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/30 z-30">
+                    <motion.div
+                        className="h-full bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-400 shadow-lg"
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${((currentSlide + 1) / sliderImages.length) * 100}%` }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                    />
+                    <div className="absolute top-0 left-0 right-0 h-full bg-gradient-to-r from-orange-400/20 via-amber-500/20 to-yellow-400/20 blur-sm"></div>
+                </div>
+
+                {/* Enhanced decorative elements */}
+                <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
+                    {/* Corner decorations with animation */}
+                    <motion.div
+                        className="absolute top-0 left-0 w-20 h-20 border-l-4 border-t-4 border-orange-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        animate={{
+                            borderColor: ["rgba(251, 146, 60, 0.5)", "rgba(245, 158, 11, 0.5)", "rgba(251, 146, 60, 0.5)"]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                    />
+                    <motion.div
+                        className="absolute top-0 right-0 w-20 h-20 border-r-4 border-t-4 border-amber-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        animate={{
+                            borderColor: ["rgba(245, 158, 11, 0.5)", "rgba(234, 179, 8, 0.5)", "rgba(245, 158, 11, 0.5)"]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+                    />
+                    <motion.div
+                        className="absolute bottom-0 left-0 w-20 h-20 border-l-4 border-b-4 border-yellow-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        animate={{
+                            borderColor: ["rgba(234, 179, 8, 0.5)", "rgba(251, 146, 60, 0.5)", "rgba(234, 179, 8, 0.5)"]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                    />
+                    <motion.div
+                        className="absolute bottom-0 right-0 w-20 h-20 border-r-4 border-b-4 border-orange-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        animate={{
+                            borderColor: ["rgba(251, 146, 60, 0.5)", "rgba(245, 158, 11, 0.5)", "rgba(251, 146, 60, 0.5)"]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+                    />
+                </div>
+
+                {/* Enhanced floating light effects */}
+                <div className="absolute inset-0 pointer-events-none z-20">
+                    <motion.div
+                        className="absolute top-1/4 left-1/4 w-40 h-40 bg-orange-400/15 rounded-full blur-xl opacity-0 group-hover:opacity-100"
+                        animate={{
+                            scale: [1, 1.3, 1],
+                            opacity: [0, 0.4, 0],
+                            x: [0, 20, 0],
+                            y: [0, -10, 0]
+                        }}
+                        transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    />
+                    <motion.div
+                        className="absolute top-3/4 right-1/4 w-32 h-32 bg-amber-400/15 rounded-full blur-xl opacity-0 group-hover:opacity-100"
+                        animate={{
+                            scale: [1, 1.4, 1],
+                            opacity: [0, 0.5, 0],
+                            x: [0, -15, 0],
+                            y: [0, 15, 0]
+                        }}
+                        transition={{
+                            duration: 5,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 0.7
+                        }}
+                    />
+                    <motion.div
+                        className="absolute top-1/2 left-1/2 w-24 h-24 bg-yellow-400/10 rounded-full blur-xl opacity-0 group-hover:opacity-100"
+                        animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0, 0.3, 0],
+                            rotate: [0, 180, 360]
+                        }}
+                        transition={{
+                            duration: 6,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 1.2
+                        }}
+                    />
                 </div>
             </div>
 
@@ -305,6 +539,136 @@ function Home() {
 
             {/* Ý kiến khách hàng */}
             <Testimonials />
+
+            {/* Đăng ký */}
+            <motion.section
+                className="py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 relative overflow-hidden"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={sectionVariants}
+            >
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+                        {/* Nội dung text */}
+                        <motion.div
+                            className="lg:col-span-3 space-y-8 text-center lg:text-left order-2 lg:order-1"
+                            initial={{ opacity: 0, x: -50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                        >
+                            <div className="space-y-6">
+                                <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 font-montserrat tracking-tight">
+                                    Khám phá thế giới với FoodieHub
+                                </h1>
+                                <p className="text-slate-600 text-lg leading-relaxed max-w-lg mx-auto lg:mx-0">
+                                    Đăng ký ngay để nhận các ưu đãi, lời khuyên ẩm thực và cập nhật mới nhất từ chúng tôi.
+                                </p>
+                            </div>
+
+                            {/* Form đăng ký */}
+                            <div className="space-y-4">
+                                <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto lg:mx-0">
+                                    <input
+                                        type="email"
+                                        placeholder="Nhập email của bạn"
+                                        className="flex-grow border border-orange-200 rounded-full px-6 py-4 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition-all duration-300 text-base"
+                                        aria-label="Email đăng ký"
+                                    />
+                                    <motion.button
+                                        className="bg-gradient-to-r from-orange-500 to-amber-600 text-white px-8 py-4 rounded-full hover:from-orange-600 hover:to-amber-700 shadow-md transition-all duration-300 font-semibold whitespace-nowrap"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        Đăng ký
+                                    </motion.button>
+                                </div>
+
+                                <p className="text-slate-500 text-sm max-w-lg mx-auto lg:mx-0">
+                                    Bằng cách đăng ký, bạn đồng ý với điều khoản sử dụng và chính sách bảo mật của chúng tôi.
+                                </p>
+                            </div>
+
+                            {/* Call to action cho app */}
+                            <div className="pt-4 border-t border-orange-100">
+                                <p className="text-slate-600 text-lg leading-relaxed max-w-lg mx-auto lg:mx-0 mb-4">
+                                    Có bữa ăn mơ ước của bạn trong tầm tay. Tải xuống ứng dụng.
+                                </p>
+
+                                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                    <motion.a
+                                        href="#"
+                                        className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-orange-200 rounded-xl px-6 py-3 hover:bg-white transition-all duration-300 shadow-sm"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs text-slate-500">Tải về từ</div>
+                                            <div className="text-sm font-semibold text-slate-700">App Store</div>
+                                        </div>
+                                    </motion.a>
+
+                                    <motion.a
+                                        href="#"
+                                        className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-orange-200 rounded-xl px-6 py-3 hover:bg-white transition-all duration-300 shadow-sm"
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs text-slate-500">Tải về từ</div>
+                                            <div className="text-sm font-semibold text-slate-700">Google Play</div>
+                                        </div>
+                                    </motion.a>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Hình ảnh app */}
+                        <motion.div
+                            className="lg:col-span-2 flex justify-center lg:justify-end order-1 lg:order-2"
+                            initial={{ opacity: 0, x: 50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4 }}
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-3xl blur-2xl transform rotate-3 scale-105"></div>
+                                <img
+                                    src="/images/app-phone.png"
+                                    alt="Ứng dụng FoodieHub"
+                                    className="relative w-80 h-96 md:w-96 md:h-[500px] lg:w-[400px] lg:h-[520px] object-cover rounded-3xl shadow-2xl transform hover:scale-105 transition-transform duration-500"
+                                    loading="lazy"
+                                />
+
+                                {/* Floating elements */}
+                                <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                                    <span className="text-white text-3xl">🍕</span>
+                                </div>
+                                <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center shadow-lg animate-bounce delay-1000">
+                                    <span className="text-white text-2xl">🍔</span>
+                                </div>
+                                <div className="absolute top-1/2 -left-8 w-14 h-14 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center shadow-lg animate-bounce delay-500">
+                                    <span className="text-white text-xl">🥤</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </motion.section>
         </div>
     );
 }
