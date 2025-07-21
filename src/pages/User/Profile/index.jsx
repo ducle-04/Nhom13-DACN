@@ -14,8 +14,8 @@ function Toast({ message, type, onClose }) {
 
     return (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 animate-slide-in ${type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
+            ? 'bg-green-50 border border-green-200 text-green-800'
+            : 'bg-red-50 border border-red-200 text-red-800'
             }`}>
             {type === 'success' ? (
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -33,6 +33,39 @@ function Toast({ message, type, onClose }) {
     );
 }
 
+// Custom Confirm Modal Component
+function CustomConfirmModal({ isOpen, onClose, onConfirm, message }) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-md">
+                <div className="text-center">
+                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Save className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Xác nhận lưu thay đổi</h3>
+                    <p className="text-gray-600 mb-6">{message}</p>
+                </div>
+                <div className="flex justify-center space-x-4">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 bg-gray-200 text-gray-800 rounded-xl hover:bg-gray-300 transition-colors duration-200"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-6 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors duration-200"
+                    >
+                        Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function Profile() {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
@@ -45,6 +78,7 @@ function Profile() {
     const [loading, setLoading] = useState(true);
     const [updateLoading, setUpdateLoading] = useState(false);
     const [toast, setToast] = useState(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const token = localStorage.getItem('token');
 
     useEffect(() => {
@@ -108,10 +142,11 @@ function Profile() {
             return;
         }
 
-        if (!window.confirm('Bạn có chắc muốn lưu thay đổi?')) {
-            return;
-        }
+        setIsConfirmOpen(true); // Mở modal xác nhận
+    };
 
+    const handleConfirmUpdate = async () => {
+        setIsConfirmOpen(false); // Đóng modal
         setUpdateLoading(true);
         try {
             await axios.put(
@@ -165,7 +200,6 @@ function Profile() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-            {/* Toast Notification */}
             {toast && (
                 <Toast
                     message={toast.message}
@@ -173,6 +207,13 @@ function Profile() {
                     onClose={() => setToast(null)}
                 />
             )}
+
+            <CustomConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleConfirmUpdate}
+                message="Bạn có chắc muốn lưu thay đổi?"
+            />
 
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 {/* Header */}
@@ -352,7 +393,7 @@ function Profile() {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style >{`
                 @keyframes slide-in {
                     from {
                         transform: translateX(100%);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ShoppingCart, User, LogOut, Settings } from 'lucide-react';
+import { Search, X, ShoppingCart, User, LogOut, Settings, Calendar } from 'lucide-react';
 import axios from 'axios';
 import Cart from '../Cart';
 import { useCart } from '../../../../../Context/CartContext';
@@ -17,6 +17,7 @@ function Header() {
     const [searchError, setSearchError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
     const navigate = useNavigate();
     const { cartItems } = useCart();
 
@@ -25,6 +26,8 @@ function Header() {
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
+        setIsBookingOpen(false);
+        setIsProfileOpen(false);
     };
 
     const toggleCart = () => {
@@ -33,6 +36,10 @@ function Header() {
 
     const toggleProfile = () => {
         setIsProfileOpen(!isProfileOpen);
+    };
+
+    const toggleBooking = () => {
+        setIsBookingOpen(!isBookingOpen);
     };
 
     // Check login status
@@ -90,8 +97,8 @@ function Header() {
     // Animation variants
     const menuVariants = {
         hidden: { opacity: 0, y: -20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-        exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+        exit: { opacity: 0, y: -20, transition: { duration: 0.15 } },
     };
 
     const dropdownVariants = {
@@ -99,9 +106,9 @@ function Header() {
         visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.2, staggerChildren: 0.05 },
+            transition: { duration: 0.15, staggerChildren: 0.03 },
         },
-        exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
+        exit: { opacity: 0, y: -10, transition: { duration: 0.1 } },
     };
 
     const itemVariants = {
@@ -110,55 +117,101 @@ function Header() {
     };
 
     const navLinkClass = ({ isActive }) =>
-        `px-4 py-2.5 text-gray-800 font-semibold text-base rounded-lg transition-all duration-300 ${isActive ? 'bg-amber-500 text-white shadow-md' : 'hover:bg-amber-500 hover:text-white hover:shadow-md'}`;
+        `px-5 py-3 text-gray-800 font-semibold text-lg rounded-lg transition-all duration-200 ${isActive ? 'bg-amber-500 text-white shadow-sm' : 'hover:bg-amber-100 hover:text-amber-600 hover:shadow-sm'}`;
 
     const mobileNavLinkClass = ({ isActive }) =>
-        `block px-4 py-3 text-gray-800 font-semibold text-lg rounded-lg transition-all duration-300 ${isActive ? 'bg-gray-800 text-white shadow-md' : 'hover:bg-gray-800 hover:text-white hover:shadow-md'}`;
+        `block px-5 py-4 text-gray-800 font-semibold text-lg rounded-lg transition-all duration-200 ${isActive ? 'bg-amber-500 text-white shadow-sm' : 'hover:bg-amber-100 hover:text-amber-600 hover:shadow-sm'}`;
 
     return (
         <>
-            <nav className="bg-white shadow-lg sticky top-0 z-50 py-4">
-                <div className="container mx-auto px-6 flex items-center justify-between">
+            <nav className="bg-white shadow-md sticky top-0 z-50 py-3">
+                <div className="container mx-auto px-4 flex items-center justify-between">
                     {/* Logo */}
                     <Link
                         to="/"
-                        className="text-2xl font-bold text-amber-500 tracking-wide font-montserrat"
+                        className="text-3xl font-bold text-amber-500 tracking-tight font-montserrat"
                     >
                         FoodieHub
                     </Link>
 
                     {/* Toggle button for mobile */}
                     <button
-                        className="lg:hidden text-gray-800 focus:outline-none hover:text-amber-500 transition-colors duration-300"
+                        className="lg:hidden text-gray-800 focus:outline-none hover:text-amber-500 transition-colors duration-200"
                         onClick={toggleMenu}
                         aria-expanded={isMenuOpen}
                         aria-label="Toggle navigation"
                     >
-                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>
                     </button>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex lg:items-center lg:space-x-8" id="mainNavbar">
-                        <ul className="flex space-x-6">
+                    <div className="hidden lg:flex lg:items-center lg:space-x-6">
+                        <ul className="flex items-center space-x-2">
                             {[
                                 { to: '/', label: 'Trang chủ' },
                                 { to: '/menu', label: 'Thực đơn' },
                                 { to: '/promotions', label: 'Khuyến mãi' },
-                                { to: '/booking', label: 'Đặt bàn' },
+                                { label: 'Đặt bàn', isDropdown: true },
                                 { to: '/news', label: 'Tin tức' },
                                 { to: '/about', label: 'Giới thiệu' },
-                            ].map(({ to, label }) => (
+                            ].map(({ to, label, isDropdown }) => (
                                 <motion.li
-                                    key={to}
+                                    key={to || label}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.3, delay: 0.1 }}
+                                    transition={{ duration: 0.2, delay: 0.05 }}
+                                    className="relative"
                                 >
-                                    <NavLink to={to} className={navLinkClass}>
-                                        {label}
-                                    </NavLink>
+                                    {isDropdown ? (
+                                        <button
+                                            className="px-5 py-3 text-gray-800 font-semibold text-lg rounded-lg transition-all duration-200 hover:bg-amber-100 hover:text-amber-600 hover:shadow-sm flex items-center"
+                                            onClick={toggleBooking}
+                                        >
+                                            {label}
+                                        </button>
+                                    ) : (
+                                        <NavLink to={to} className={navLinkClass}>
+                                            {label}
+                                        </NavLink>
+                                    )}
+                                    <AnimatePresence>
+                                        {isBookingOpen && isDropdown && (
+                                            <motion.div
+                                                className="absolute top-full left-0 mt-2 w-52 bg-white rounded-lg shadow-md z-50 border border-gray-100 overflow-hidden"
+                                                variants={dropdownVariants}
+                                                initial="hidden"
+                                                animate="visible"
+                                                exit="exit"
+                                            >
+                                                <Link
+                                                    to="/booking"
+                                                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
+                                                    onClick={() => {
+                                                        setIsBookingOpen(false);
+                                                        toggleMenu();
+                                                    }}
+                                                >
+                                                    <Calendar className="w-5 h-5 mr-2" />
+                                                    Đặt bàn tại nhà hàng
+                                                </Link>
+                                                {isLoggedIn && (
+                                                    <Link
+                                                        to="/booking/history"
+                                                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
+                                                        onClick={() => {
+                                                            setIsBookingOpen(false);
+                                                            toggleMenu();
+                                                        }}
+                                                    >
+                                                        <Calendar className="w-5 h-5 mr-2" />
+                                                        Lịch sử đặt bàn
+                                                    </Link>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </motion.li>
                             ))}
                         </ul>
@@ -167,20 +220,20 @@ function Header() {
                         <div className="flex items-center space-x-4">
                             {/* Search Bar */}
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 transition-colors duration-300" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                                 <input
                                     type="text"
                                     placeholder="Tìm kiếm món ăn..."
-                                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-gray-50 text-gray-800 placeholder-gray-400 w-56 transition-all duration-300 hover:bg-white hover:shadow-sm"
+                                    className="pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-gray-50 text-gray-800 placeholder-gray-400 w-64 transition-all duration-200 hover:bg-white hover:shadow-sm"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onFocus={() => setIsSearchFocused(true)}
-                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
                                 />
                                 <AnimatePresence>
                                     {isSearchFocused && (searchQuery || searchResults.length > 0 || suggestedProducts.length > 0) && (
                                         <motion.div
-                                            className="absolute top-full left-0 mt-3 w-80 bg-white rounded-xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
+                                            className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-md z-50 border border-gray-100 overflow-hidden"
                                             variants={dropdownVariants}
                                             initial="hidden"
                                             animate="visible"
@@ -188,14 +241,14 @@ function Header() {
                                         >
                                             {searchResults.length > 0 && (
                                                 <>
-                                                    <div className="px-4 py-2 bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2">
+                                                    <div className="px-4 py-2 bg-amber-50 text-amber-600 text-sm font-semibold flex items-center gap-2">
                                                         <Search className="w-4 h-4" />
                                                         Kết quả tìm kiếm
                                                     </div>
                                                     {searchResults.map((product, index) => (
                                                         <motion.div
                                                             key={`result-${index}`}
-                                                            className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                                                            className="px-4 py-3 hover:bg-amber-50 transition-colors duration-150"
                                                             variants={itemVariants}
                                                         >
                                                             <Link
@@ -220,7 +273,7 @@ function Header() {
                                             )}
                                             {isSearchFocused && (!searchQuery || searchResults.length === 0) && suggestedProducts.length > 0 && (
                                                 <>
-                                                    <div className="px-4 py-2 bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2">
+                                                    <div className="px-4 py-2 bg-amber-50 text-amber-600 text-sm font-semibold flex items-center gap-2">
                                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
                                                         </svg>
@@ -229,7 +282,7 @@ function Header() {
                                                     {suggestedProducts.map((product, index) => (
                                                         <motion.div
                                                             key={`suggestion-${index}`}
-                                                            className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                                                            className="px-4 py-3 hover:bg-amber-50 transition-colors duration-150"
                                                             variants={itemVariants}
                                                         >
                                                             <Link
@@ -267,16 +320,16 @@ function Header() {
                             {isLoggedIn ? (
                                 <div className="relative">
                                     <button
-                                        className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300"
+                                        className="text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                         onClick={toggleProfile}
                                         aria-label="Tùy chọn tài khoản"
                                     >
-                                        <User className="w-7 h-7" />
+                                        <User className="w-6 h-6" />
                                     </button>
                                     <AnimatePresence>
                                         {isProfileOpen && (
                                             <motion.div
-                                                className="absolute top-full right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
+                                                className="absolute top-full right-0 mt-2 w-52 bg-white rounded-lg shadow-md z-50 border border-gray-100 overflow-hidden"
                                                 variants={dropdownVariants}
                                                 initial="hidden"
                                                 animate="visible"
@@ -284,15 +337,21 @@ function Header() {
                                             >
                                                 <Link
                                                     to="/profile"
-                                                    className="flex items-center px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors duration-200"
-                                                    onClick={() => setIsProfileOpen(false)}
+                                                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
+                                                    onClick={() => {
+                                                        setIsProfileOpen(false);
+                                                        toggleMenu();
+                                                    }}
                                                 >
                                                     <Settings className="w-5 h-5 mr-2" />
                                                     Chỉnh sửa profile
                                                 </Link>
                                                 <button
-                                                    className="flex items-center px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors duration-200 w-full text-left"
-                                                    onClick={handleLogout}
+                                                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150 w-full text-left"
+                                                    onClick={() => {
+                                                        handleLogout();
+                                                        toggleMenu();
+                                                    }}
                                                 >
                                                     <LogOut className="w-5 h-5 mr-2" />
                                                     Đăng xuất
@@ -304,21 +363,21 @@ function Header() {
                             ) : (
                                 <Link
                                     to="/login"
-                                    className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300 flex items-center gap-2"
+                                    className="flex items-center space-x-2 text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                 >
-                                    <User className="w-7 h-7" />
-                                    <span className="text-base font-medium">Đăng nhập</span>
+                                    <User className="w-6 h-6" />
+                                    <span className="text-lg font-medium">Đăng nhập</span>
                                 </Link>
                             )}
 
                             {/* Cart Icon */}
                             <button
                                 onClick={toggleCart}
-                                className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300"
+                                className="relative text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                 aria-label="Mở giỏ hàng"
                             >
-                                <ShoppingCart className="w-7 h-7" />
-                                <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                                <ShoppingCart className="w-6 h-6" />
+                                <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                                     {totalQuantity}
                                 </span>
                             </button>
@@ -329,18 +388,18 @@ function Header() {
                     <AnimatePresence>
                         {isMenuOpen && (
                             <motion.div
-                                className="lg:hidden fixed inset-0 bg-white bg-opacity-95 z-40 p-6"
+                                className="lg:hidden fixed inset-0 bg-white z-40 p-6"
                                 variants={menuVariants}
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
                             >
                                 <button
-                                    className="absolute top-4 right-4 text-gray-800 hover:text-amber-500 transition-colors duration-300"
+                                    className="absolute top-4 right-4 text-gray-800 hover:text-amber-500 transition-colors duration-200"
                                     onClick={toggleMenu}
                                     aria-label="Close navigation"
                                 >
-                                    <X className="w-7 h-7" />
+                                    <X className="w-8 h-8" />
                                 </button>
 
                                 {/* Search and Icons Row */}
@@ -351,16 +410,16 @@ function Header() {
                                         <input
                                             type="text"
                                             placeholder="Tìm kiếm món ăn..."
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-gray-50 text-gray-800 placeholder-gray-400 transition-all duration-300 hover:bg-white hover:shadow-sm"
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-gray-50 text-gray-800 placeholder-gray-400 transition-all duration-200 hover:bg-white hover:shadow-sm"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             onFocus={() => setIsSearchFocused(true)}
-                                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
                                         />
                                         <AnimatePresence>
                                             {isSearchFocused && (searchQuery || searchResults.length > 0 || suggestedProducts.length > 0) && (
                                                 <motion.div
-                                                    className="absolute top-full left-0 mt-3 w-full bg-white rounded-xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
+                                                    className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-md z-50 border border-gray-100 overflow-hidden"
                                                     variants={dropdownVariants}
                                                     initial="hidden"
                                                     animate="visible"
@@ -368,14 +427,14 @@ function Header() {
                                                 >
                                                     {searchResults.length > 0 && (
                                                         <>
-                                                            <div className="px-4 py-2 bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2">
+                                                            <div className="px-4 py-2 bg-amber-50 text-amber-600 text-sm font-semibold flex items-center gap-2">
                                                                 <Search className="w-4 h-4" />
                                                                 Kết quả tìm kiếm
                                                             </div>
                                                             {searchResults.map((product, index) => (
                                                                 <motion.div
                                                                     key={`result-${index}`}
-                                                                    className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                                                                    className="px-4 py-3 hover:bg-amber-50 transition-colors duration-150"
                                                                     variants={itemVariants}
                                                                 >
                                                                     <Link
@@ -403,7 +462,7 @@ function Header() {
                                                     )}
                                                     {isSearchFocused && (!searchQuery || searchResults.length === 0) && suggestedProducts.length > 0 && (
                                                         <>
-                                                            <div className="px-4 py-2 bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2">
+                                                            <div className="px-4 py-2 bg-amber-50 text-amber-600 text-sm font-semibold flex items-center gap-2">
                                                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                                     <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
                                                                 </svg>
@@ -412,7 +471,7 @@ function Header() {
                                                             {suggestedProducts.map((product, index) => (
                                                                 <motion.div
                                                                     key={`suggestion-${index}`}
-                                                                    className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200"
+                                                                    className="px-4 py-3 hover:bg-amber-50 transition-colors duration-150"
                                                                     variants={itemVariants}
                                                                 >
                                                                     <Link
@@ -453,16 +512,16 @@ function Header() {
                                     {isLoggedIn ? (
                                         <div className="relative">
                                             <button
-                                                className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300"
+                                                className="text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                                 onClick={toggleProfile}
                                                 aria-label="Tùy chọn tài khoản"
                                             >
-                                                <User className="w-7 h-7" />
+                                                <User className="w-6 h-6" />
                                             </button>
                                             <AnimatePresence>
                                                 {isProfileOpen && (
                                                     <motion.div
-                                                        className="absolute top-full right-0 mt-3 w-48 bg-white rounded-xl shadow-2xl z-50 border border-gray-100 overflow-hidden"
+                                                        className="absolute top-full right-0 mt-2 w-52 bg-white rounded-lg shadow-md z-50 border border-gray-100 overflow-hidden"
                                                         variants={dropdownVariants}
                                                         initial="hidden"
                                                         animate="visible"
@@ -470,7 +529,7 @@ function Header() {
                                                     >
                                                         <Link
                                                             to="/profile"
-                                                            className="flex items-center px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors duration-200"
+                                                            className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
                                                             onClick={() => {
                                                                 setIsProfileOpen(false);
                                                                 toggleMenu();
@@ -480,7 +539,7 @@ function Header() {
                                                             Chỉnh sửa profile
                                                         </Link>
                                                         <button
-                                                            className="flex items-center px-4 py-3 text-gray-800 hover:bg-gray-50 transition-colors duration-200 w-full text-left"
+                                                            className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150 w-full text-left"
                                                             onClick={() => {
                                                                 handleLogout();
                                                                 toggleMenu();
@@ -496,50 +555,91 @@ function Header() {
                                     ) : (
                                         <Link
                                             to="/login"
-                                            className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300 flex items-center gap-2"
+                                            className="flex items-center space-x-2 text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                             onClick={toggleMenu}
                                         >
-                                            <User className="w-7 h-7" />
-                                            <span className="text-base font-medium">Đăng nhập</span>
+                                            <User className="w-6 h-6" />
+                                            <span className="text-lg font-medium">Đăng nhập</span>
                                         </Link>
                                     )}
 
                                     {/* Cart Icon */}
                                     <button
                                         onClick={toggleCart}
-                                        className="relative text-gray-800 hover:text-amber-500 transition-colors duration-300"
+                                        className="relative text-gray-800 hover:text-amber-500 transition-colors duration-200 p-2 rounded-full hover:bg-amber-100"
                                         aria-label="Mở giỏ hàng"
                                     >
-                                        <ShoppingCart className="w-7 h-7" />
-                                        <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                                        <ShoppingCart className="w-6 h-6" />
+                                        <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                                             {totalQuantity}
                                         </span>
                                     </button>
                                 </div>
 
-                                {/* Menu items */}
-                                <ul className="flex flex-col mt-6 space-y-4">
+                                {/* Mobile Menu Items */}
+                                <ul className="flex flex-col mt-6 space-y-3">
                                     {[
                                         { to: '/', label: 'Trang chủ' },
                                         { to: '/menu', label: 'Thực đơn' },
                                         { to: '/promotions', label: 'Khuyến mãi' },
-                                        { to: '/booking', label: 'Đặt bàn' },
+                                        { label: 'Đặt bàn', isDropdown: true },
                                         { to: '/news', label: 'Tin tức' },
                                         { to: '/about', label: 'Giới thiệu' },
-                                    ].map(({ to, label }) => (
+                                    ].map(({ to, label, isDropdown }) => (
                                         <motion.li
-                                            key={to}
+                                            key={to || label}
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            transition={{ duration: 0.3, delay: 0.1 }}
+                                            transition={{ duration: 0.2, delay: 0.05 }}
                                         >
-                                            <NavLink
-                                                to={to}
-                                                className={mobileNavLinkClass}
-                                                onClick={toggleMenu}
-                                            >
-                                                {label}
-                                            </NavLink>
+                                            {isDropdown ? (
+                                                <div className="relative">
+                                                    <button
+                                                        className={mobileNavLinkClass({ isActive: false })}
+                                                        onClick={toggleBooking}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {isBookingOpen && (
+                                                            <motion.div
+                                                                className="ml-6 mt-2 w-[calc(100%-3rem)] bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden"
+                                                                variants={dropdownVariants}
+                                                                initial="hidden"
+                                                                animate="visible"
+                                                                exit="exit"
+                                                            >
+                                                                <Link
+                                                                    to="/booking"
+                                                                    className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
+                                                                    onClick={toggleMenu}
+                                                                >
+                                                                    <Calendar className="w-5 h-5 mr-2" />
+                                                                    Đặt bàn tại nhà hàng
+                                                                </Link>
+                                                                {isLoggedIn && (
+                                                                    <Link
+                                                                        to="/booking/history"
+                                                                        className="flex items-center px-4 py-3 text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors duration-150"
+                                                                        onClick={toggleMenu}
+                                                                    >
+                                                                        <Calendar className="w-5 h-5 mr-2" />
+                                                                        Lịch sử đặt bàn
+                                                                    </Link>
+                                                                )}
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            ) : (
+                                                <NavLink
+                                                    to={to}
+                                                    className={mobileNavLinkClass}
+                                                    onClick={toggleMenu}
+                                                >
+                                                    {label}
+                                                </NavLink>
+                                            )}
                                         </motion.li>
                                     ))}
                                 </ul>

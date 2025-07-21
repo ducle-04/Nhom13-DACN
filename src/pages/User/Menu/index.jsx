@@ -172,6 +172,10 @@ function Menu() {
     };
 
     const openProductModal = (product) => {
+        if (product.status === 'OUT_OF_STOCK' || product.status === 'DISCONTINUED') {
+            toast.error(`Sản phẩm "${product.name}" hiện không thể mua vì ${product.status.toLowerCase() === 'out_of_stock' ? 'hết hàng' : 'ngừng kinh doanh'}.`);
+            return;
+        }
         setSelectedProduct(product);
         setIsModalOpen(true);
     };
@@ -292,33 +296,68 @@ function Menu() {
                             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <ShoppingCart className="w-12 h-12 text-gray-400" />
                             </div>
-                            milde
                             <p className="text-gray-500 text-lg">Không có sản phẩm nào phù hợp.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filteredProducts.map((product) => {
                                 const discount = calculateDiscount(product.originalPrice, product.discountedPrice);
+                                const isSealed = product.status === 'OUT_OF_STOCK' || product.status === 'DISCONTINUED';
+
                                 return (
                                     <motion.div
                                         key={product.id}
-                                        className="group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ease-in-out border border-white/20 hover:shadow-2xl hover:shadow-orange-200/40"
-                                        whileHover={{ scale: 1.02, y: -12 }}
+                                        className={`group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ease-in-out border border-white/20 ${isSealed ? 'opacity-70' : 'hover:shadow-2xl hover:shadow-orange-200/40'}`}
+                                        whileHover={{ scale: isSealed ? 1 : 1.02, y: isSealed ? 0 : -12 }}
                                     >
-                                        {/* Hiệu ứng ánh sáng khi hover */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/10 to-amber-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                        {/* Hiệu ứng ánh sáng khi hover (chỉ áp dụng nếu không bị niêm phong) */}
+                                        {!isSealed && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/10 to-amber-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                        )}
 
-                                        {/* Hiệu ứng glow border */}
-                                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-400/20 to-amber-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                                        {/* Hiệu ứng glow border (chỉ áp dụng nếu không bị niêm phong) */}
+                                        {!isSealed && (
+                                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-400/20 to-amber-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                                        )}
 
                                         <div className="relative overflow-hidden">
                                             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
 
-                                            {/* Hiệu ứng shimmer overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                                            {/* Hiệu ứng shimmer overlay (chỉ áp dụng nếu không bị niêm phong) */}
+                                            {!isSealed && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                                            )}
 
-                                            {/* Badge giảm giá với hiệu ứng */}
-                                            {discount > 0 && (
+                                            {/* Overlay niêm phong nếu bị OUT_OF_STOCK hoặc DISCONTINUED */}
+                                            {isSealed && (
+                                                <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-red-900/30 to-black/70 backdrop-blur-sm flex items-center justify-center z-20 animate-pulse">
+                                                    <span className="text-white text-2xl font-bold uppercase tracking-widest drop-shadow-2xl relative px-6 py-3 bg-gradient-to-r from-red-600/90 to-red-700/90 rounded-xl border border-red-400/60 shadow-2xl transform hover:scale-105 transition-all duration-300 animate-bounce">
+                                                        {/* Hiệu ứng shimmer */}
+                                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-pulse rounded-xl"></span>
+
+                                                        {/* Icon cảnh báo */}
+                                                        <span className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></span>
+                                                        <span className="absolute -bottom-2 -left-2 w-3 h-3 bg-red-400 rounded-full animate-ping delay-500"></span>
+
+                                                        {/* Text content */}
+                                                        <span className="relative z-10 flex items-center gap-2">
+                                                            {/* Warning icon */}
+                                                            <svg className="w-6 h-6 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                            </svg>
+                                                            {product.status === 'OUT_OF_STOCK' ? 'Hết hàng' : 'Ngừng kinh doanh'}
+                                                        </span>
+
+                                                        {/* Decorative particles */}
+                                                        <span className="absolute top-1 left-1 w-1 h-1 bg-white/60 rounded-full animate-ping"></span>
+                                                        <span className="absolute top-3 right-1 w-1 h-1 bg-white/40 rounded-full animate-ping delay-300"></span>
+                                                        <span className="absolute bottom-1 right-3 w-1 h-1 bg-white/50 rounded-full animate-ping delay-700"></span>
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Badge giảm giá (chỉ áp dụng nếu không bị niêm phong) */}
+                                            {discount > 0 && !isSealed && (
                                                 <div className="absolute top-4 right-4 z-10">
                                                     <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300">
                                                         Giảm {discount}%
@@ -334,14 +373,16 @@ function Menu() {
                                                 onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
                                             />
 
-                                            {/* Gradient overlay khi hover */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                            {/* Gradient overlay khi hover (chỉ áp dụng nếu không bị niêm phong) */}
+                                            {!isSealed && (
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                            )}
                                         </div>
 
-                                        <div className="relative p-8 group-hover:bg-gradient-to-br group-hover:from-white/90 group-hover:to-orange-50/50 transition-all duration-300">
+                                        <div className={`relative p-8 ${isSealed ? 'bg-gray-800/30' : 'group-hover:bg-gradient-to-br group-hover:from-white/90 group-hover:to-orange-50/50'} transition-all duration-300`}>
                                             <motion.h3
                                                 className="text-2xl font-bold text-gray-900 mb-4 transition-all duration-300 group-hover:text-orange-600 line-clamp-2"
-                                                whileHover={{ x: 4 }}
+                                                whileHover={{ x: isSealed ? 0 : 4 }}
                                             >
                                                 {product.name}
                                             </motion.h3>
@@ -352,7 +393,7 @@ function Menu() {
                                                         <motion.span
                                                             key={i}
                                                             className="text-lg"
-                                                            whileHover={{ scale: 1.2, rotate: 5 }}
+                                                            whileHover={{ scale: isSealed ? 1 : 1.2, rotate: isSealed ? 0 : 5 }}
                                                             transition={{ duration: 0.2 }}
                                                         >
                                                             {i < 4 ? '★' : '☆'}
@@ -362,7 +403,7 @@ function Menu() {
                                             </div>
 
                                             <div className="flex justify-center items-center space-x-3 mb-4">
-                                                {discount > 0 && (
+                                                {discount > 0 && !isSealed && (
                                                     <motion.p
                                                         className="text-gray-600 line-through text-lg group-hover:text-gray-500 transition-colors duration-300"
                                                         whileHover={{ scale: 0.95 }}
@@ -372,13 +413,13 @@ function Menu() {
                                                 )}
                                                 <motion.p
                                                     className="text-orange-600 font-bold text-xl group-hover:text-orange-500 transition-colors duration-300"
-                                                    whileHover={{ scale: 1.05 }}
+                                                    whileHover={{ scale: isSealed ? 1 : 1.05 }}
                                                 >
                                                     {parseInt(product.discountedPrice).toLocaleString('vi-VN')} VNĐ
                                                 </motion.p>
                                             </div>
 
-                                            {discount > 0 && (
+                                            {discount > 0 && !isSealed && (
                                                 <motion.p
                                                     className="text-sm text-orange-600 font-semibold mb-6 group-hover:text-orange-500 transition-colors duration-300"
                                                     whileHover={{ x: 2 }}
@@ -389,18 +430,21 @@ function Menu() {
 
                                             <motion.button
                                                 onClick={() => openProductModal(product)}
-                                                className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg group-hover:shadow-xl transform hover:scale-105 group/button overflow-hidden"
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
+                                                className={`relative inline-flex items-center px-8 py-4 rounded-full font-semibold transition-all duration-300 ${isSealed ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-amber-600 text-white hover:from-orange-600 hover:to-amber-700 hover:shadow-lg'} group-hover:shadow-xl transform ${isSealed ? '' : 'hover:scale-105'} overflow-hidden`}
+                                                whileHover={{ scale: isSealed ? 1 : 1.05 }}
+                                                whileTap={{ scale: isSealed ? 1 : 0.95 }}
+                                                disabled={isSealed}
                                             >
-                                                {/* Hiệu ứng wave khi hover button */}
-                                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover/button:translate-x-full transition-transform duration-500"></div>
+                                                {/* Hiệu ứng wave khi hover button (chỉ áp dụng nếu không bị niêm phong) */}
+                                                {!isSealed && (
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
+                                                )}
 
                                                 <div className="relative flex items-center">
                                                     <motion.div
                                                         animate={{ rotate: [0, 360] }}
                                                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                                        className="group-hover/button:animate-spin"
+                                                        className={`group-hover:animate-spin ${isSealed ? 'text-gray-400' : ''}`}
                                                     >
                                                         <ShoppingCart className="w-5 h-5 mr-2" />
                                                     </motion.div>
@@ -408,20 +452,22 @@ function Menu() {
                                                     <motion.div
                                                         animate={{ x: [0, 4, 0] }}
                                                         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                                        className="group-hover/button:animate-bounce"
+                                                        className={`group-hover:animate-bounce ${isSealed ? '' : 'ml-2'}`}
                                                     >
-                                                        <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/button:translate-x-1" />
+                                                        <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                                                     </motion.div>
                                                 </div>
                                             </motion.button>
                                         </div>
 
-                                        {/* Hiệu ứng particles khi hover */}
-                                        <div className="absolute inset-0 pointer-events-none">
-                                            <div className="absolute top-10 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-100"></div>
-                                            <div className="absolute top-20 right-16 w-1 h-1 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-200"></div>
-                                            <div className="absolute bottom-16 left-20 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-300"></div>
-                                        </div>
+                                        {/* Hiệu ứng particles khi hover (chỉ áp dụng nếu không bị niêm phong) */}
+                                        {!isSealed && (
+                                            <div className="absolute inset-0 pointer-events-none">
+                                                <div className="absolute top-10 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-100"></div>
+                                                <div className="absolute top-20 right-16 w-1 h-1 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-200"></div>
+                                                <div className="absolute bottom-16 left-20 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-300"></div>
+                                            </div>
+                                        )}
                                     </motion.div>
                                 );
                             })}
@@ -548,10 +594,9 @@ function Menu() {
                                 <motion.button
                                     key={index}
                                     onClick={() => setSelectedPriceRange(range.value)}
-                                    className={`w-full text-left px-4 py-3 Сергій
-                                    rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-between ${selectedPriceRange === range.value
-                                            ? 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-600 font-semibold shadow-md border border-orange-200'
-                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:shadow-sm'
+                                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center justify-between ${selectedPriceRange === range.value
+                                        ? 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-600 font-semibold shadow-md border border-orange-200'
+                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:shadow-sm'
                                         }`}
                                     whileHover={{ scale: 1.02, x: 4 }}
                                     whileTap={{ scale: 0.98 }}

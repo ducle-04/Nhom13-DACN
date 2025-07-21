@@ -38,7 +38,7 @@ function ProductDetails({ isOpen, onClose, product, addToCart, orderNow, setIsCa
             setIsCartOpen(true);
             onClose();
         } catch (error) {
-            toast.error(`Lỗi: ${error.response?.data || 'Không thể thêm vào giỏ hàng'}`);
+            toast.error(` ${error.response?.data || 'Vui lòng đăng nhập'}`);
         }
     };
 
@@ -233,7 +233,7 @@ function ProductDetails({ isOpen, onClose, product, addToCart, orderNow, setIsCa
                                     <div className="flex justify-between items-center py-2">
                                         <span className="text-gray-600 font-medium">Tình trạng:</span>
                                         <span className={`font-semibold px-3 py-1 rounded-full text-sm ${product.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-                                                product.status === 'OUT_OF_STOCK' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                                            product.status === 'OUT_OF_STOCK' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                                             }`}>
                                             {product.status === 'AVAILABLE' ? 'Có sẵn' :
                                                 product.status === 'OUT_OF_STOCK' ? 'Hết hàng' :
