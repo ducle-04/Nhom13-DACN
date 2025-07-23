@@ -110,6 +110,16 @@ function AdminOrderManagement() {
         }
     };
 
+    const formatPaymentMethod = (method) => {
+        switch (method) {
+            case 'CASH': return 'Tiền mặt';
+            case 'CARD': return 'Thẻ tín dụng/Thẻ ghi nợ';
+            case 'BANK_TRANSFER': return 'Chuyển khoản ngân hàng';
+            case 'MOBILE_PAYMENT': return 'Thanh toán qua ứng dụng di động';
+            default: return method || 'Không xác định';
+        }
+    };
+
     if (loading) return <div className="p-6 text-center text-gray-500 text-lg">Đang tải...</div>;
     if (error) return <div className="p-6 text-center text-red-500 text-lg">{error}</div>;
 
@@ -130,7 +140,7 @@ function AdminOrderManagement() {
                             <table className="min-w-full border-collapse">
                                 <thead className="bg-gray-200">
                                     <tr>
-                                        {['#', 'Họ Tên', 'Số Điện Thoại', 'Địa Chỉ Giao', 'Ngày Đặt', 'Ngày Giao', 'Tổng Tiền', 'Trạng Thái', 'Thanh Toán', 'Sửa Trạng Thái', 'Sửa Thanh Toán', 'Thao Tác'].map((header) => (
+                                        {['#', 'Họ Tên', 'Số Điện Thoại', 'Địa Chỉ Giao', 'Ngày Đặt', 'Ngày Giao', 'Tổng Tiền', 'Trạng Thái', 'Thanh Toán', 'Hình Thức Thanh Toán', 'Sửa Trạng Thái', 'Sửa Thanh Toán', 'Thao Tác'].map((header) => (
                                             <th key={header} className="border border-gray-300 p-3 text-left">
                                                 {header}
                                             </th>
@@ -177,6 +187,11 @@ function AdminOrderManagement() {
                                                             : 'bg-blue-100 text-blue-800'
                                                     }`}>
                                                     {formatPaymentStatus(order.paymentStatus)}
+                                                </span>
+                                            </td>
+                                            <td className="border border-gray-300 p-3 text-sm text-gray-600">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    {formatPaymentMethod(order.paymentMethod)}
                                                 </span>
                                             </td>
                                             <td className="border border-gray-300 p-3 text-sm text-gray-600">
@@ -269,6 +284,14 @@ function AdminOrderManagement() {
                                     {
                                         label: 'Ngày Giao Hàng',
                                         value: selectedOrder.deliveryDate ? format(new Date(selectedOrder.deliveryDate), 'dd/MM/yyyy HH:mm') : 'Chưa xác định'
+                                    },
+                                    {
+                                        label: 'Hình Thức Thanh Toán',
+                                        value: (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                {formatPaymentMethod(selectedOrder.paymentMethod)}
+                                            </span>
+                                        )
                                     },
                                     {
                                         label: 'Trạng Thái Thanh Toán',
