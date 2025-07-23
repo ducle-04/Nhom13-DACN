@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useCart } from '../../../../../Context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 function Cart({ isOpen, onClose }) {
     const { cartItems, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+    const navigate = useNavigate();
 
     // Animation variants cho overlay
     const overlayVariants = {
@@ -126,8 +128,8 @@ function Cart({ isOpen, onClose }) {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => {
-                                        // Logic chuyển hướng hoặc mở modal thanh toán
-                                        alert('Chuyển đến trang thanh toán...');
+                                        onClose(); // Close the cart
+                                        navigate('/orders'); // Navigate to /orders
                                     }}
                                 >
                                     Thanh Toán

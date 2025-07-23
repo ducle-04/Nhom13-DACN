@@ -13,7 +13,6 @@ function AdminBookingManagement() {
 
     const token = localStorage.getItem('token');
 
-    // Fetch all bookings on component mount
     useEffect(() => {
         const fetchBookings = async () => {
             if (!token) {
@@ -38,7 +37,6 @@ function AdminBookingManagement() {
         fetchBookings();
     }, [token]);
 
-    // Handle confirm booking
     const handleConfirm = async (id) => {
         try {
             const response = await axios.put(`http://localhost:8080/api/booking/confirm/${id}`, null, {
@@ -52,7 +50,6 @@ function AdminBookingManagement() {
         }
     };
 
-    // Handle cancel booking
     const handleCancel = async (id) => {
         try {
             const response = await axios.put(`http://localhost:8080/api/booking/cancel/${id}`, null, {
@@ -66,7 +63,6 @@ function AdminBookingManagement() {
         }
     };
 
-    // Handle delete booking
     const handleDelete = async (id) => {
         if (!window.confirm('Bạn có chắc muốn xóa đơn đặt bàn này?')) return;
 
@@ -82,7 +78,6 @@ function AdminBookingManagement() {
         }
     };
 
-    // Handle view booking details
     const handleViewDetails = async (id) => {
         try {
             const response = await axios.get(`http://localhost:8080/api/booking/${id}`, {
@@ -96,49 +91,37 @@ function AdminBookingManagement() {
         }
     };
 
-    // Close detail modal
     const handleCloseDetailModal = () => {
         setShowDetailModal(false);
         setSelectedBooking(null);
     };
 
-    // Format status for display
     const formatStatus = (status) => {
         switch (status) {
-            case 'PENDING':
-                return 'Chờ xác nhận';
-            case 'CONFIRMED':
-                return 'Đã xác nhận';
-            case 'CANCELLED':
-                return 'Đã hủy';
-            default:
-                return status;
+            case 'PENDING': return 'Chờ xác nhận';
+            case 'CONFIRMED': return 'Đã xác nhận';
+            case 'CANCELLED': return 'Đã hủy';
+            default: return status;
         }
     };
 
-    // Format area for display
     const formatArea = (area) => {
         switch (area) {
-            case 'indoor':
-                return 'Khu vực chính';
-            case 'vip':
-                return 'Phòng VIP';
-            case 'outdoor':
-                return 'Khu vườn';
-            case 'terrace':
-                return 'Sân thượng';
-            default:
-                return area;
+            case 'indoor': return 'Khu vực chính';
+            case 'vip': return 'Phòng VIP';
+            case 'outdoor': return 'Khu vườn';
+            case 'terrace': return 'Sân thượng';
+            default: return area;
         }
     };
 
-    if (loading) return <div className="p-6 text-center text-gray-600">Đang tải...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="p-6 text-center text-gray-500 text-lg">Đang tải...</div>;
+    if (error) return <div className="p-6 text-center text-red-500 text-lg">{error}</div>;
 
     return (
-        <div className="p-6 min-h-screen">
-            <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-                <div className="flex justify-between items-center p-6">
+        <div className="p-6">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div className="p-6 bg-gray-200">
                     <h2 className="text-2xl font-bold text-gray-800 font-montserrat">Quản Lý Đặt Bàn</h2>
                 </div>
 
@@ -150,19 +133,13 @@ function AdminBookingManagement() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-200">
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">#</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Họ Tên</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Số Điện Thoại</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Ngày</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Giờ</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Số Khách</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Khu Vực</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Yêu Cầu Đặc Biệt</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Thời Gian Đặt</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Trạng Thái</th>
-                                        <th className="border border-gray-300 p-3 text-left text-sm font-medium text-gray-700">Thao Tác</th>
+                                <thead className="bg-gray-200">
+                                    <tr>
+                                        {['#', 'Họ Tên', 'Số Điện Thoại', 'Ngày', 'Giờ', 'Số Khách', 'Khu Vực', 'Yêu Cầu Đặc Biệt', 'Thời Gian Đặt', 'Trạng Thái', 'Thao Tác'].map((header) => (
+                                            <th key={header} className="border border-gray-300 p-3 text-left">
+                                                {header}
+                                            </th>
+                                        ))}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -184,14 +161,12 @@ function AdminBookingManagement() {
                                                 {format(new Date(booking.createdAt), 'dd/MM/yyyy HH:mm')}
                                             </td>
                                             <td className="border border-gray-300 p-3 text-sm text-gray-600">
-                                                <span
-                                                    className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${booking.status === 'PENDING'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : booking.status === 'CONFIRMED'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-red-100 text-red-800'
-                                                        }`}
-                                                >
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${booking.status === 'PENDING'
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : booking.status === 'CONFIRMED'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'
+                                                    }`}>
                                                     {formatStatus(booking.status)}
                                                 </span>
                                             </td>
@@ -236,64 +211,51 @@ function AdminBookingManagement() {
                 </div>
             </div>
 
-            {/* Modal xem chi tiết đơn đặt bàn */}
             {showDetailModal && selectedBooking && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-                        <h3 className="text-lg font-bold mb-4 font-montserrat">Chi Tiết Đơn Đặt Bàn</h3>
-                        <div className="grid grid-cols-1 gap-4">
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">ID:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.id}</p>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] overflow-y-auto">
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-gray-800 mb-4 font-montserrat">Chi Tiết Đơn Đặt Bàn</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[
+                                    { label: 'ID', value: selectedBooking.id },
+                                    { label: 'Họ Tên', value: selectedBooking.fullName },
+                                    { label: 'Số Điện Thoại', value: selectedBooking.phoneNumber },
+                                    { label: 'Ngày', value: format(new Date(selectedBooking.bookingDate), 'dd/MM/yyyy') },
+                                    { label: 'Giờ', value: selectedBooking.bookingTime },
+                                    { label: 'Số Khách', value: selectedBooking.numberOfGuests },
+                                    { label: 'Khu Vực', value: formatArea(selectedBooking.area) },
+                                    { label: 'Yêu Cầu Đặc Biệt', value: selectedBooking.specialRequests || 'Không có' },
+                                    { label: 'Thời Gian Đặt', value: format(new Date(selectedBooking.createdAt), 'dd/MM/yyyy HH:mm') },
+                                    {
+                                        label: 'Trạng Thái',
+                                        value: (
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${selectedBooking.status === 'PENDING'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : selectedBooking.status === 'CONFIRMED'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                {formatStatus(selectedBooking.status)}
+                                            </span>
+                                        )
+                                    },
+                                    { label: 'Tên Người Dùng', value: selectedBooking.username || 'Không có' },
+                                ].map((item, index) => (
+                                    <div key={index}>
+                                        <label className="block text-sm font-medium text-gray-700">{item.label}:</label>
+                                        <p className="mt-1 text-sm text-gray-600">{item.value}</p>
+                                    </div>
+                                ))}
                             </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Họ Tên:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.fullName}</p>
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={handleCloseDetailModal}
+                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200"
+                                >
+                                    Đóng
+                                </button>
                             </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Số Điện Thoại:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.phoneNumber}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Ngày:</label>
-                                <p className="text-sm text-gray-600">{format(new Date(selectedBooking.bookingDate), 'dd/MM/yyyy')}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Giờ:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.bookingTime}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Số Khách:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.numberOfGuests}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Khu Vực:</label>
-                                <p className="text-sm text-gray-600">{formatArea(selectedBooking.area)}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Yêu Cầu Đặc Biệt:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.specialRequests || 'Không có'}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Thời Gian Đặt:</label>
-                                <p className="text-sm text-gray-600">{format(new Date(selectedBooking.createdAt), 'dd/MM/yyyy HH:mm')}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Trạng Thái:</label>
-                                <p className="text-sm text-gray-600">{formatStatus(selectedBooking.status)}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-sm text-gray-700">Tên Người Dùng:</label>
-                                <p className="text-sm text-gray-600">{selectedBooking.username || 'Không có'}</p>
-                            </div>
-                        </div>
-                        <div className="flex justify-end mt-6">
-                            <button
-                                onClick={handleCloseDetailModal}
-                                className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200"
-                            >
-                                Đóng
-                            </button>
                         </div>
                     </div>
                 </div>

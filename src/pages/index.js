@@ -7,7 +7,9 @@ import Profile from "./User/Profile";
 import News from "./User/News";
 import Register from "./User/Register";
 import Booking from "./User/BookingPage";
-import BookingHistory from "./User/BookingHistory";
+import BookingHistory from "./User/BookingHistory"
+import OrderPage from "./User/OrderPage"
+import OrderHistoryPage from "./User/OrderHistoryPage";
 import AdminLayout from "../components/Layout/DefautLayout/AdminLayout";
 
 import AdminDashboard from "./Admin/Dashboard";
@@ -17,6 +19,7 @@ import ProductTypeManager from "./Admin/ProductTypeManager";
 import CategoryManager from "./Admin/CategoryManager";
 import NewsManager from "./Admin/NewsManager";
 import AdminBookingManagement from "./Admin/AdminBookingManagement";
+import AdminOrderManagement from "./Admin/AdminOrderManagement";
 const PrivatePage = [
 
 ]; // Add private pages here if needed
@@ -30,6 +33,8 @@ const PublicPage = [
     { path: "/news", component: News, layout: UserLayout },
     { path: "/booking", component: Booking, layout: UserLayout },
     { path: "/booking/history", component: BookingHistory, layout: UserLayout },
+    { path: "/orders", component: OrderPage, layout: UserLayout },
+    { path: "/orders/history", component: OrderHistoryPage, layout: UserLayout },
     { path: "/profile", component: Profile, layout: UserLayout },
     { path: "/admin", component: AdminDashboard, layout: AdminLayout },
     { path: "/admin/user", component: UserManager, layout: AdminLayout },
@@ -38,6 +43,8 @@ const PublicPage = [
     { path: "/admin/categories", component: CategoryManager, layout: AdminLayout },
     { path: "/admin/news", component: NewsManager, layout: AdminLayout },
     { path: "/admin/bookings", component: AdminBookingManagement, layout: AdminLayout },
+    { path: "/admin/orders", component: AdminOrderManagement, layout: AdminLayout },
+
 
 
 ];
