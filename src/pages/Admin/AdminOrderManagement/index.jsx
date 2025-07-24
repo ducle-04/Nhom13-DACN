@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { format } from 'date-fns';
-import { FaCheck, FaTimes, FaTrash, FaEye } from 'react-icons/fa';
+import { FaCheck, FaEye, FaTimes } from 'react-icons/fa';
+import { getAdminOrders, updateOrderStatus, updatePaymentStatus, cancelOrder } from '../../../services/api/orderService';
 
 function AdminOrderManagement() {
     const [orders, setOrders] = useState([]);
@@ -21,14 +21,11 @@ function AdminOrderManagement() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/orders/admin', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setOrders(response.data.data || []);
+                const orderData = await getAdminOrders(token);
+                setOrders(orderData);
                 setLoading(false);
             } catch (err) {
-                setError(err.response?.data.message || 'Không có quyền truy cập hoặc lỗi khi lấy danh sách đơn hàng.');
+                setError(err.message);
                 setLoading(false);
             }
         };
@@ -38,29 +35,21 @@ function AdminOrderManagement() {
 
     const handleUpdateStatus = async (id, status) => {
         try {
-            const response = await axios.put(`http://localhost:8080/api/orders/${id}/status`, null, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { status },
-                timeout: 5000,
-            });
-            setOrders(orders.map((order) => (order.id === id ? response.data.data : order)));
+            const updatedOrder = await updateOrderStatus(token, id, status);
+            setOrders(orders.map((order) => (order.id === id ? updatedOrder : order)));
             alert(`Cập nhật trạng thái đơn hàng thành ${formatStatus(status)} thành công!`);
         } catch (err) {
-            alert(err.response?.data.message || 'Lỗi khi cập nhật trạng thái đơn hàng.');
+            alert(err.message);
         }
     };
 
     const handleUpdatePaymentStatus = async (id, status) => {
         try {
-            const response = await axios.put(`http://localhost:8080/api/orders/${id}/payment-status`, null, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { status },
-                timeout: 5000,
-            });
-            setOrders(orders.map((order) => (order.id === id ? response.data.data : order)));
+            const updatedOrder = await updatePaymentStatus(token, id, status);
+            setOrders(orders.map((order) => (order.id === id ? updatedOrder : order)));
             alert(`Cập nhật trạng thái thanh toán thành ${formatPaymentStatus(status)} thành công!`);
         } catch (err) {
-            alert(err.response?.data.message || 'Lỗi khi cập nhật trạng thái thanh toán.');
+            alert(err.message);
         }
     };
 
@@ -68,14 +57,11 @@ function AdminOrderManagement() {
         if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
 
         try {
-            await axios.delete(`http://localhost:8080/api/orders/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
+            await cancelOrder(token, id);
             setOrders(orders.filter((order) => order.id !== id));
             alert('Hủy đơn hàng thành công!');
         } catch (err) {
-            alert(err.response?.data.message || 'Lỗi khi hủy đơn hàng.');
+            alert(err.message);
         }
     };
 
@@ -227,6 +213,7 @@ function AdminOrderManagement() {
                                                     <button
                                                         onClick={() => handleViewDetails(order)}
                                                         className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                                                        title="Xem chi tiết"
                                                     >
                                                         <FaEye className="mr-1" />
                                                     </button>
@@ -235,24 +222,18 @@ function AdminOrderManagement() {
                                                             <button
                                                                 onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
                                                                 className="flex items-center px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
+                                                                title="Xác nhận đơn hàng"
                                                             >
                                                                 <FaCheck className="mr-1" />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleCancel(order.id)}
                                                                 className="flex items-center px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors duration-200"
+                                                                title="Hủy đơn hàng"
                                                             >
                                                                 <FaTimes className="mr-1" />
                                                             </button>
                                                         </>
-                                                    )}
-                                                    {order.orderStatus !== 'CANCELLED' && (
-                                                        <button
-                                                            onClick={() => handleCancel(order.id)}
-                                                            className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-                                                        >
-                                                            <FaTrash className="mr-1" />
-                                                        </button>
                                                     )}
                                                 </div>
                                             </td>

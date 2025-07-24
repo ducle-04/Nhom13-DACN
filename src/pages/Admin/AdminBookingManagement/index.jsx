@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { format } from 'date-fns';
 import { FaCheck, FaTimes, FaTrash, FaEye } from 'react-icons/fa';
+import { getAllBookings, confirmBooking, cancelBooking, deleteBooking, getBookingDetails } from '../../../services/api/bookingService';
 
 function AdminBookingManagement() {
     const [bookings, setBookings] = useState([]);
@@ -22,14 +22,11 @@ function AdminBookingManagement() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/booking/all', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setBookings(response.data);
+                const data = await getAllBookings(token);
+                setBookings(data);
                 setLoading(false);
             } catch (err) {
-                setError(err.response?.data.error || 'Không có quyền truy cập hoặc lỗi khi lấy danh sách đặt bàn.');
+                setError(err.message || 'Không có quyền truy cập hoặc lỗi khi lấy danh sách đặt bàn.');
                 setLoading(false);
             }
         };
@@ -39,27 +36,21 @@ function AdminBookingManagement() {
 
     const handleConfirm = async (id) => {
         try {
-            const response = await axios.put(`http://localhost:8080/api/booking/confirm/${id}`, null, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            setBookings(bookings.map((booking) => (booking.id === id ? response.data : booking)));
+            const updatedBooking = await confirmBooking(token, id);
+            setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
             alert('Xác nhận đơn đặt bàn thành công!');
         } catch (err) {
-            alert(err.response?.data.error || 'Lỗi khi xác nhận đơn đặt bàn.');
+            alert(err.message || 'Lỗi khi xác nhận đơn đặt bàn.');
         }
     };
 
     const handleCancel = async (id) => {
         try {
-            const response = await axios.put(`http://localhost:8080/api/booking/cancel/${id}`, null, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            setBookings(bookings.map((booking) => (booking.id === id ? response.data : booking)));
+            const updatedBooking = await cancelBooking(token, id);
+            setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
             alert('Hủy đơn đặt bàn thành công!');
         } catch (err) {
-            alert(err.response?.data.error || 'Lỗi khi hủy đơn đặt bàn.');
+            alert(err.message || 'Lỗi khi hủy đơn đặt bàn.');
         }
     };
 
@@ -67,27 +58,21 @@ function AdminBookingManagement() {
         if (!window.confirm('Bạn có chắc muốn xóa đơn đặt bàn này?')) return;
 
         try {
-            await axios.delete(`http://localhost:8080/api/booking/delete/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
+            await deleteBooking(token, id);
             setBookings(bookings.filter((booking) => booking.id !== id));
             alert('Xóa đơn đặt bàn thành công!');
         } catch (err) {
-            alert(err.response?.data.error || 'Lỗi khi xóa đơn đặt bàn.');
+            alert(err.message || 'Lỗi khi xóa đơn đặt bàn.');
         }
     };
 
     const handleViewDetails = async (id) => {
         try {
-            const response = await axios.get(`http://localhost:8080/api/booking/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            setSelectedBooking(response.data);
+            const booking = await getBookingDetails(token, id);
+            setSelectedBooking(booking);
             setShowDetailModal(true);
         } catch (err) {
-            alert(err.response?.data.error || 'Lỗi khi xem chi tiết đơn đặt bàn.');
+            alert(err.message || 'Lỗi khi xem chi tiết đơn đặt bàn.');
         }
     };
 

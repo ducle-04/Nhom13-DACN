@@ -111,11 +111,11 @@ const BookingDetailModal = ({ booking, onClose }) => {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-200">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl shadow-lg">
+                        <div className="p-4 bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl shadow-lg">
                             <FaUtensils className="text-white text-2xl" />
                         </div>
                         <div>
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                                 Chi tiết đơn đặt bàn
                             </h2>
                             <p className="text-slate-600 mt-1">Thông tin chi tiết về đơn đặt bàn của bạn</p>
@@ -152,9 +152,9 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     </div>
 
                     {/* Booking Information Section */}
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100/50">
+                    <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-100/50">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-amber-500 rounded-lg">
+                            <div className="p-2 bg-emerald-500 rounded-lg">
                                 <FaCalendarAlt className="text-white text-lg" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-800">Thông tin đặt bàn</h3>
@@ -162,18 +162,18 @@ const BookingDetailModal = ({ booking, onClose }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white/70 rounded-xl p-4 backdrop-blur-sm">
                                 <p className="text-sm font-medium text-slate-500 mb-2">Ngày đặt</p>
-                                <p className="text-xl font-bold text-amber-600">
+                                <p className="text-xl font-bold text-emerald-600">
                                     {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                 </p>
                             </div>
                             <div className="bg-white/70 rounded-xl p-4 backdrop-blur-sm">
                                 <p className="text-sm font-medium text-slate-500 mb-2">Giờ đặt</p>
-                                <p className="text-xl font-bold text-amber-600">{booking.bookingTime}</p>
+                                <p className="text-xl font-bold text-emerald-600">{booking.bookingTime}</p>
                             </div>
                             <div className="bg-white/70 rounded-xl p-4 backdrop-blur-sm">
                                 <p className="text-sm font-medium text-slate-500 mb-2">Số khách</p>
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center justify-center w-10 h-10 bg-amber-500 rounded-full">
+                                    <div className="flex items-center justify-center w-10 h-10 bg-emerald-500 rounded-full">
                                         <span className="text-white font-bold">{booking.numberOfGuests}</span>
                                     </div>
                                     <span className="text-xl font-bold text-slate-900">người</span>
@@ -234,7 +234,7 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     </button>
                     <button
                         onClick={onClose}
-                        className="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-xl hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                     >
                         Đóng
                     </button>
@@ -404,13 +404,13 @@ function BookingHistory() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full mb-6 shadow-lg">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full mb-6 shadow-lg">
                         <FaUtensils className="text-white text-2xl" />
                     </div>
-                    <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-4">
+                    <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-4">
                         Lịch Sử Đặt Bàn
                     </h1>
-                    <div className="w-32 h-1 bg-gradient-to-r from-amber-400 to-orange-400 mx-auto rounded-full mb-6"></div>
+                    <div className="w-32 h-1 bg-gradient-to-r from-emerald-400 to-green-400 mx-auto rounded-full mb-6"></div>
                     <p className="text-slate-600 text-xl max-w-2xl mx-auto leading-relaxed">
                         Quản lý và theo dõi tất cả các đơn đặt bàn của bạn một cách dễ dàng và hiệu quả
                     </p>
@@ -437,15 +437,15 @@ function BookingHistory() {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20">
                             <div className="relative mb-8">
-                                <div className="animate-spin rounded-full h-16 w-16 border-4 border-amber-200"></div>
-                                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-amber-500 absolute top-0 left-0"></div>
+                                <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200"></div>
+                                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-emerald-500 absolute top-0 left-0"></div>
                             </div>
                             <p className="text-slate-600 text-xl font-medium">Đang tải lịch sử đặt bàn...</p>
                         </div>
                     ) : bookings.length === 0 ? (
                         <div className="text-center py-20">
-                            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-amber-200 to-orange-200 rounded-full mb-8 shadow-lg">
-                                <FaUtensils className="text-amber-600 text-3xl" />
+                            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full mb-8 shadow-lg">
+                                <FaUtensils className="text-emerald-600 text-3xl" />
                             </div>
                             <h3 className="text-3xl font-bold text-slate-800 mb-4">Chưa có đơn đặt bàn nào</h3>
                             <p className="text-slate-600 text-lg mb-8 max-w-md mx-auto">
@@ -453,7 +453,7 @@ function BookingHistory() {
                             </p>
                             <Link
                                 to="/booking"
-                                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-2xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold rounded-2xl hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                             >
                                 <FaUtensils className="w-5 h-5 mr-3" />
                                 Đặt bàn ngay
@@ -465,7 +465,7 @@ function BookingHistory() {
                             <div className="hidden lg:block overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 border-b border-amber-200">
+                                        <tr className="bg-gradient-to-r from-emerald-100 via-green-100 to-emerald-100 border-b border-emerald-200">
                                             <th className="px-8 py-6 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">Khách hàng</th>
                                             <th className="px-8 py-6 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">Thời gian</th>
                                             <th className="px-8 py-6 text-left text-sm font-bold text-slate-700 uppercase tracking-wider">Chi tiết</th>
@@ -477,11 +477,11 @@ function BookingHistory() {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {bookings.map((booking, index) => (
-                                            <tr key={booking.id} className={`hover:bg-amber-50/50 transition-all duration-300 ${index % 2 === 0 ? 'bg-white/80' : 'bg-slate-50/50'}`}>
+                                            <tr key={booking.id} className={`hover:bg-emerald-50/50 transition-all duration-300 ${index % 2 === 0 ? 'bg-white/80' : 'bg-slate-50/50'}`}>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center space-x-4">
                                                         <div className="flex-shrink-0">
-                                                            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg">
+                                                            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-400 rounded-full flex items-center justify-center shadow-lg">
                                                                 <span className="text-white font-bold text-lg">
                                                                     {booking.fullName.charAt(0).toUpperCase()}
                                                                 </span>
@@ -496,14 +496,14 @@ function BookingHistory() {
                                                 <td className="px-8 py-6">
                                                     <div className="space-y-2">
                                                         <div className="flex items-center gap-2">
-                                                            <FaCalendarAlt className="text-amber-500" />
+                                                            <FaCalendarAlt className="text-emerald-500" />
                                                             <p className="font-bold text-slate-900">
                                                                 {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <FaClock className="text-orange-500" />
-                                                            <p className="font-semibold text-amber-600">{booking.bookingTime}</p>
+                                                            <FaClock className="text-emerald-500" />
+                                                            <p className="font-semibold text-emerald-600">{booking.bookingTime}</p>
                                                         </div>
                                                         <p className="text-xs text-slate-500">
                                                             Đặt: {format(new Date(booking.createdAt), 'dd/MM/yyyy HH:mm')}
@@ -579,14 +579,14 @@ function BookingHistory() {
                                         {/* Card Header */}
                                         <div className="flex justify-between items-start mb-6">
                                             <div className="flex items-center space-x-4 flex-1">
-                                                <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg">
+                                                <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-green-400 rounded-full flex items-center justify-center shadow-lg">
                                                     <span className="text-white font-bold text-xl">
                                                         {booking.fullName.charAt(0).toUpperCase()}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-slate-900 text-xl">{booking.fullName}</h3>
-                                                    <p className="text-amber-600 font-semibold text-lg">{booking.phoneNumber}</p>
+                                                    <p className="text-emerald-600 font-semibold text-lg">{booking.phoneNumber}</p>
                                                 </div>
                                             </div>
                                             <div className="flex space-x-2">
@@ -616,15 +616,15 @@ function BookingHistory() {
 
                                         {/* Booking Details Grid */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100/50">
+                                            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-100/50">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <FaCalendarAlt className="text-amber-500" />
+                                                    <FaCalendarAlt className="text-emerald-500" />
                                                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ngày & Giờ</p>
                                                 </div>
                                                 <p className="font-bold text-slate-900 text-lg">
                                                     {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                                 </p>
-                                                <p className="text-amber-600 font-semibold text-lg">{booking.bookingTime}</p>
+                                                <p className="text-emerald-600 font-semibold text-lg">{booking.bookingTime}</p>
                                             </div>
 
                                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100/50">
@@ -680,7 +680,7 @@ function BookingHistory() {
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-6 mt-12">
                     <Link
                         to="/booking"
-                        className="group inline-flex items-center px-10 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-2xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 w-full sm:w-auto text-center text-lg"
+                        className="group inline-flex items-center px-10 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold rounded-2xl hover:from-emerald-600 hover:to-green-600 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 w-full sm:w-auto text-center text-lg"
                     >
                         <FaUtensils className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
                         Đặt Bàn Mới

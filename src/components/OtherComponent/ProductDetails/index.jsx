@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, X, ShoppingBag, Truck, Utensils, Star, Heart, Share2 } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -23,7 +24,7 @@ const floatingElements = {
 function ProductDetails({ isOpen, onClose, product, addToCart, orderNow, setIsCartOpen }) {
     const [quantity, setQuantity] = React.useState(1);
     const [isFavorite, setIsFavorite] = React.useState(false);
-
+    const navigate = useNavigate();
     const calculateDiscount = (originalPrice, discountedPrice) => {
         const origPrice = parseInt(originalPrice);
         const discPrice = parseInt(discountedPrice);
@@ -38,17 +39,24 @@ function ProductDetails({ isOpen, onClose, product, addToCart, orderNow, setIsCa
             setIsCartOpen(true);
             onClose();
         } catch (error) {
-            toast.error(` ${error.response?.data || 'Vui lòng đăng nhập'}`);
+            toast.error(`${error.response?.data || 'Vui lòng đăng nhập'}`);
         }
     };
 
     const handleOrderNow = () => {
-        orderNow({
-            id: product.id,
-            name: product.name,
-            price: parseInt(product.discountedPrice),
-            quantity: quantity,
-            image: product.img,
+        navigate('/orders', {
+            state: {
+                orderNowItem: {
+                    productId: product.id,
+                    name: product.name,
+                    price: parseInt(product.discountedPrice),
+                    quantity: quantity,
+                    image: product.img,
+                    description: product.description,
+                    category: product.categoryName,
+                    productType: product.productTypeName
+                }
+            }
         });
         onClose();
     };

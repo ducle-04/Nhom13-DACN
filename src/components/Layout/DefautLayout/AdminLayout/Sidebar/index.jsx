@@ -12,12 +12,18 @@ const menu = [
     { label: 'Quản lý đặt bàn', icon: <FaCalendarCheck />, path: '/admin/bookings' },
 ];
 
-function Sidebar() {
+function Sidebar({ onLogout }) {
     const location = useLocation();
+
+    const handleLogoutClick = (e) => {
+        e.preventDefault();
+        onLogout();
+    };
+
     return (
         <aside className="admin-sidebar bg-gray-900 text-white h-screen flex flex-col p-0" style={{ width: 320 }}>
             <div className="sidebar-logo flex items-center justify-center py-4 border-b border-gray-700">
-                <span className="logo-text font-bold text-xl text-blue-400">FooiebHub Admin</span>
+                <span className="logo-text font-bold text-xl text-blue-400">FoodieHub Admin</span>
             </div>
             <nav className="sidebar-menu flex-grow">
                 <ul className="flex flex-col mt-3">
@@ -36,10 +42,13 @@ function Sidebar() {
                 </ul>
             </nav>
             <div className="sidebar-bottom border-t border-gray-700 py-3 px-4">
-                <Link to="/logout" className="nav-link flex items-center text-red-400 font-bold">
+                <button
+                    onClick={handleLogoutClick}
+                    className="nav-link flex items-center text-red-400 font-bold"
+                >
                     <span className="sidebar-icon mr-2"><FaSignOutAlt /></span>
                     <span>Đăng xuất</span>
-                </Link>
+                </button>
             </div>
         </aside>
     );

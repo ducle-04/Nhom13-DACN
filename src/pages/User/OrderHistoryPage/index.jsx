@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaTimes, FaBoxOpen, FaShippingFast, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getOrders, cancelOrder } from '../../../services/api/orderService';
 
 const OrderHistoryPage = () => {
     const [orders, setOrders] = useState([]);
@@ -21,29 +21,16 @@ const OrderHistoryPage = () => {
                 throw new Error('Vui lòng đăng nhập lại');
             }
 
-            const response = await axios.get('http://localhost:8080/api/orders', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const orderData = response.data.data || [];
+            const orderData = await getOrders(token);
             setOrders(orderData);
         } catch (error) {
-            let errorMessage = 'Lỗi không xác định';
-            if (error.response) {
-                if (error.response.status === 401) {
-                    errorMessage = 'Vui lòng đăng nhập lại';
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                } else if (error.response.status === 404) {
-                    errorMessage = 'Không tìm thấy đơn hàng';
-                } else {
-                    errorMessage = error.response.data.message || 'Lỗi máy chủ';
-                }
-            } else {
-                errorMessage = error.message;
+            let errorMessage = error.message || 'Lỗi không xác định';
+            if (error.response?.status === 401) {
+                errorMessage = 'Vui lòng đăng nhập lại';
+                localStorage.removeItem('token');
+                navigate('/login');
+            } else if (error.response?.status === 404) {
+                errorMessage = 'Không tìm thấy đơn hàng';
             }
             setError(errorMessage);
             console.error('Lỗi khi lấy danh sách đơn hàng:', errorMessage);
@@ -62,7 +49,7 @@ const OrderHistoryPage = () => {
             cancelButtonText: 'Hủy bỏ',
             buttonsStyling: false,
             customClass: {
-                confirmButton: 'px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg shadow-md hovered:shadow-lg transition-all duration-300 hover:scale-105',
+                confirmButton: 'px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105',
                 cancelButton: 'px-6 py-3 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105',
                 title: 'text-2xl font-bold text-gray-800',
                 htmlContainer: 'text-gray-600',
@@ -71,12 +58,9 @@ const OrderHistoryPage = () => {
             if (result.isConfirmed) {
                 try {
                     const token = localStorage.getItem('token');
-                    await axios.delete(`http://localhost:8080/api/orders/${id}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
+                    if (!token) throw new Error('Vui lòng đăng nhập lại');
+
+                    await cancelOrder(token, id);
                     setOrders(orders.filter((order) => order.id !== id));
 
                     toast.success('Hủy đơn hàng thành công!', {
@@ -89,12 +73,7 @@ const OrderHistoryPage = () => {
                         theme: 'colored',
                     });
                 } catch (error) {
-                    let errorMessage = 'Lỗi khi hủy đơn hàng';
-                    if (error.response) {
-                        errorMessage = error.response.data.message || 'Lỗi máy chủ';
-                    } else {
-                        errorMessage = error.message;
-                    }
+                    const errorMessage = error.message || 'Lỗi khi hủy đơn hàng';
                     toast.error(errorMessage, {
                         position: 'top-right',
                         autoClose: 3000,
@@ -197,7 +176,6 @@ const OrderHistoryPage = () => {
                                             </div>
                                             <div>
                                                 <h2 className="text-2xl font-bold text-slate-800">Đơn hàng #{index + 1}</h2>
-                                                {/* Removed Mã đơn hàng line */}
                                             </div>
                                         </div>
 
@@ -252,21 +230,30 @@ const OrderHistoryPage = () => {
                                                     <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                                                     Danh sách sản phẩm
                                                 </h3>
-                                                <div className="space-y-3">
+                                                <div className="space-y-4">
                                                     {order.orderItems.map((item, itemIndex) => (
                                                         <div
                                                             key={item.id || `item-${index}-${itemIndex}`}
-                                                            className="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm border border-white/50"
+                                                            className="flex items-center p-4 bg-white rounded-lg shadow-sm border border-white/50 hover:shadow-md transition-all duration-300"
                                                         >
-                                                            <div>
-                                                                <p className="font-semibold text-slate-800">
-                                                                    {item.productName || 'Không xác định'}
-                                                                </p>
+                                                            <div className="relative overflow-hidden rounded-xl mr-4">
+                                                                <img
+                                                                    src={item.productImage || 'https://via.placeholder.com/80'}
+                                                                    alt={item.productName || 'Sản phẩm'}
+                                                                    className="w-20 h-20 object-cover transform hover:scale-110 transition-transform duration-300"
+                                                                />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <p className="font-semibold text-slate-800">{item.productName || 'Không xác định'}</p>
                                                                 <p className="text-slate-500 text-sm">Số lượng: {item.quantity || 0}</p>
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="font-bold text-indigo-600">
                                                                     {(item.unitPrice || 0).toLocaleString('vi-VN')} ₫
+                                                                </p>
+                                                                <p className="text-slate-500 text-sm">
+                                                                    Tổng: {(item.subtotal || item.unitPrice * item.quantity || 0).toLocaleString('vi-VN')} ₫
                                                                 </p>
                                                             </div>
                                                         </div>

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../../../Context/CartContext';
-import axios from 'axios';
-import Swal from 'sweetalert2'; // Nhập sweetalert2
-import { toast, ToastContainer } from 'react-toastify'; // Nhập react-toastify
-import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS của react-toastify
+import { useLocation } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { getProfile } from '../../../services/api/userService';
+import { createOrder } from '../../../services/api/orderService';
 
 const OrderPage = () => {
-    const { cartItems, totalPrice, clearCart, fetchCart, updateQuantity, removeItem } = useCart();
+    const { cartItems, totalPrice, clearCart, fetchCart, updateQuantity, removeItem, orderNow } = useCart();
+    const location = useLocation();
+    const orderNowItem = location.state?.orderNowItem;
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [deliveryDate, setDeliveryDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
@@ -14,8 +18,10 @@ const OrderPage = () => {
     const [loading, setLoading] = useState(false);
     const [userInfo, setUserInfo] = useState({ fullname: '', email: '', phoneNumber: '' });
     const [userLoading, setUserLoading] = useState(false);
+    const [orderNowQuantity, setOrderNowQuantity] = useState(orderNowItem?.quantity || 1);
 
-    // Lấy thông tin người dùng khi component được mount
+    const orderNowTotalPrice = orderNowItem ? orderNowItem.price * orderNowQuantity : 0;
+
     useEffect(() => {
         const fetchUserInfo = async () => {
             setUserLoading(true);
@@ -26,22 +32,15 @@ const OrderPage = () => {
                     return;
                 }
 
-                const response = await axios.get('http://localhost:8080/api/user/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
+                const data = await getProfile(token);
                 setUserInfo({
-                    fullname: response.data.fullname || 'Chưa cập nhật',
-                    email: response.data.email || 'Chưa cập nhật',
-                    phoneNumber: response.data.phoneNumber || 'Chưa cập nhật',
+                    fullname: data.fullname || 'Chưa cập nhật',
+                    email: data.email || 'Chưa cập nhật',
+                    phoneNumber: data.phoneNumber || 'Chưa cập nhật',
                 });
             } catch (error) {
-                const errorMessage = error.response?.data?.message || error.message || 'Lỗi khi lấy thông tin người dùng';
-                setError(errorMessage);
-                console.error('Lỗi khi lấy thông tin người dùng:', errorMessage);
+                setError(error.message);
+                console.error('Lỗi khi lấy thông tin người dùng:', error.message);
             } finally {
                 setUserLoading(false);
             }
@@ -49,6 +48,10 @@ const OrderPage = () => {
 
         fetchUserInfo();
     }, []);
+
+    const updateOrderNowQuantity = (delta) => {
+        setOrderNowQuantity(prev => Math.max(1, prev + delta));
+    };
 
     const handleCheckout = async () => {
         if (!deliveryAddress.trim()) {
@@ -64,7 +67,6 @@ const OrderPage = () => {
             return;
         }
 
-        // Hiển thị hộp thoại xác nhận
         Swal.fire({
             title: 'Xác nhận đặt hàng',
             text: 'Bạn có chắc chắn muốn đặt hàng với thông tin này?',
@@ -85,44 +87,42 @@ const OrderPage = () => {
                     const token = localStorage.getItem('token');
                     if (!token) throw new Error('Không tìm thấy token');
 
-                    const response = await axios.post(
-                        'http://localhost:8080/api/orders',
-                        {
+                    if (orderNowItem) {
+                        await orderNow({
+                            productId: orderNowItem.productId,
+                            quantity: orderNowQuantity,
                             deliveryAddress,
                             deliveryDate: deliveryDate || null,
                             paymentMethod,
-                        },
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                        }
-                    );
-
-                    if (response.status === 201) {
-                        // Hiển thị thông báo thành công
-                        toast.success('Đặt hàng thành công! Chúng tôi sẽ liên hệ để xác nhận.', {
-                            position: 'top-right',
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            theme: 'light',
                         });
-
+                    } else {
+                        await createOrder(token, {
+                            deliveryAddress,
+                            deliveryDate: deliveryDate || null,
+                            paymentMethod,
+                        });
                         await clearCart();
                         await fetchCart();
-                        setDeliveryAddress('');
-                        setDeliveryDate('');
-                        setPaymentMethod('');
                     }
+
+                    toast.success('Đặt hàng thành công! Chúng tôi sẽ liên hệ để xác nhận.', {
+                        position: 'top-right',
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: 'light',
+                    });
+
+                    setDeliveryAddress('');
+                    setDeliveryDate('');
+                    setPaymentMethod('');
+                    if (orderNowItem) setOrderNowQuantity(1);
                 } catch (error) {
-                    const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
-                    setError(errorMessage);
-                    console.error('Lỗi khi đặt hàng:', errorMessage);
-                    toast.error(errorMessage, {
+                    setError(error.message);
+                    console.error('Lỗi khi đặt hàng:', error.message);
+                    toast.error(error.message, {
                         position: 'top-right',
                         autoClose: 3000,
                         hideProgressBar: false,
@@ -140,17 +140,13 @@ const OrderPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-            {/* Thêm ToastContainer để hiển thị thông báo */}
             <ToastContainer />
-
-            {/* Background decorative elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-600/10 rounded-full blur-3xl"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/10 to-pink-600/10 rounded-full blur-3xl"></div>
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10">
-                {/* Modern Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
                         Đặt Hàng
@@ -158,7 +154,7 @@ const OrderPage = () => {
                     <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
                 </div>
 
-                {cartItems.length === 0 ? (
+                {(cartItems.length === 0 && !orderNowItem) ? (
                     <div className="bg-white/80 backdrop-blur-lg p-12 rounded-3xl shadow-2xl border border-white/20 text-center transform hover:scale-105 transition-all duration-300">
                         <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                             <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +174,6 @@ const OrderPage = () => {
                     </div>
                 ) : (
                     <div className="grid lg:grid-cols-2 gap-8">
-                        {/* Cart Items Section */}
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 transform hover:scale-[1.02] transition-all duration-300">
                             <div className="flex items-center mb-8">
                                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mr-4">
@@ -187,14 +182,14 @@ const OrderPage = () => {
                                     </svg>
                                 </div>
                                 <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                                    Sản phẩm ({cartItems.length})
+                                    Sản phẩm ({orderNowItem ? 1 : cartItems.length})
                                 </h2>
                             </div>
 
                             <div className="space-y-6 max-h-96 overflow-y-auto custom-scrollbar">
-                                {cartItems.map((item, index) => (
+                                {(orderNowItem ? [orderNowItem] : cartItems).map((item, index) => (
                                     <div
-                                        key={item.id}
+                                        key={item.productId || item.id}
                                         className="group flex items-center bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 border border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300"
                                         style={{
                                             animationDelay: `${index * 100}ms`,
@@ -215,11 +210,26 @@ const OrderPage = () => {
                                             <p className="text-gray-500 text-sm mb-3">
                                                 Đơn giá: <span className="font-medium text-blue-600">{(item.price || 0).toLocaleString('vi-VN')} VNĐ</span>
                                             </p>
+                                            {item.description && (
+                                                <p className="text-gray-500 text-sm mb-3">
+                                                    Mô tả: <span className="font-medium">{item.description}</span>
+                                                </p>
+                                            )}
+                                            {item.category && (
+                                                <p className="text-gray-500 text-sm mb-3">
+                                                    Danh mục: <span className="font-medium">{item.category}</span>
+                                                </p>
+                                            )}
+                                            {item.productType && (
+                                                <p className="text-gray-500 text-sm mb-3">
+                                                    Loại sản phẩm: <span className="font-medium">{item.productType}</span>
+                                                </p>
+                                            )}
 
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center bg-gray-100 rounded-xl p-1">
                                                     <button
-                                                        onClick={() => updateQuantity(item.productId, -1)}
+                                                        onClick={() => orderNowItem ? updateOrderNowQuantity(-1) : updateQuantity(item.productId, -1)}
                                                         className="w-8 h-8 bg-white text-gray-700 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 shadow-sm"
                                                         aria-label="Giảm số lượng"
                                                     >
@@ -228,10 +238,10 @@ const OrderPage = () => {
                                                         </svg>
                                                     </button>
                                                     <span className="text-gray-700 font-semibold w-12 text-center">
-                                                        {item.quantity}
+                                                        {orderNowItem ? orderNowQuantity : item.quantity}
                                                     </span>
                                                     <button
-                                                        onClick={() => updateQuantity(item.productId, 1)}
+                                                        onClick={() => orderNowItem ? updateOrderNowQuantity(1) : updateQuantity(item.productId, 1)}
                                                         className="w-8 h-8 bg-white text-gray-700 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 shadow-sm"
                                                         aria-label="Tăng số lượng"
                                                     >
@@ -241,21 +251,23 @@ const OrderPage = () => {
                                                     </button>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => removeItem(item.productId)}
-                                                    className="ml-4 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
-                                                    aria-label={`Xóa ${item.name}`}
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                                {!orderNowItem && (
+                                                    <button
+                                                        onClick={() => removeItem(item.productId)}
+                                                        className="ml-4 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                                        aria-label={`Xóa ${item.name}`}
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
                                         <div className="text-right ml-4">
                                             <p className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                                {(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ
+                                                {(item.price * (orderNowItem ? orderNowQuantity : item.quantity)).toLocaleString('vi-VN')} VNĐ
                                             </p>
                                         </div>
                                     </div>
@@ -267,14 +279,13 @@ const OrderPage = () => {
                                     <p className="text-2xl font-bold flex justify-between items-center">
                                         <span className="text-gray-700">Tổng tiền:</span>
                                         <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                            {totalPrice.toLocaleString('vi-VN')} VNĐ
+                                            {(orderNowItem ? orderNowTotalPrice : totalPrice).toLocaleString('vi-VN')} VNĐ
                                         </span>
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Order Form Section */}
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 transform hover:scale-[1.02] transition-all duration-300">
                             <div className="flex items-center mb-8">
                                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mr-4">
@@ -288,7 +299,6 @@ const OrderPage = () => {
                             </div>
 
                             <div className="space-y-8">
-                                {/* User Info */}
                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -350,7 +360,6 @@ const OrderPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Delivery Address */}
                                 <div className="space-y-3">
                                     <label className="flex items-center text-sm font-semibold text-gray-700">
                                         <svg className="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -368,7 +377,6 @@ const OrderPage = () => {
                                     />
                                 </div>
 
-                                {/* Delivery Date */}
                                 <div className="space-y-3">
                                     <label className="flex items-center text-sm font-semibold text-gray-700">
                                         <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +392,6 @@ const OrderPage = () => {
                                     />
                                 </div>
 
-                                {/* Payment Method */}
                                 <div className="space-y-3">
                                     <label className="flex items-center text-sm font-semibold text-gray-700">
                                         <svg className="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,7 +414,6 @@ const OrderPage = () => {
                                     </select>
                                 </div>
 
-                                {/* Total Price */}
                                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
                                     <p className="text-2xl font-bold flex justify-between items-center">
                                         <span className="text-gray-700 flex items-center">
@@ -418,12 +424,11 @@ const OrderPage = () => {
                                             Tổng tiền:
                                         </span>
                                         <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent text-3xl">
-                                            {totalPrice.toLocaleString('vi-VN')} VNĐ
+                                            {(orderNowItem ? orderNowTotalPrice : totalPrice).toLocaleString('vi-VN')} VNĐ
                                         </span>
                                     </p>
                                 </div>
 
-                                {/* Error Message */}
                                 {error && (
                                     <div className="bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-400 p-4 rounded-2xl shadow-lg animate-shake">
                                         <div className="flex items-center">
@@ -435,15 +440,12 @@ const OrderPage = () => {
                                     </div>
                                 )}
 
-                                {/* Checkout Button */}
                                 <button
                                     onClick={handleCheckout}
                                     disabled={loading}
                                     className="w-full py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group"
                                 >
-                                    {/* Button background animation */}
                                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-
                                     {loading ? (
                                         <span className="flex items-center justify-center relative z-10">
                                             <svg
@@ -483,7 +485,6 @@ const OrderPage = () => {
                 )}
             </div>
 
-            {/* Custom Styles */}
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
@@ -525,7 +526,6 @@ const OrderPage = () => {
                     box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
                 }
 
-                /* Custom gradient border animation */
                 @keyframes gradient-border {
                     0% { background-position: 0% 50%; }
                     50% { background-position: 100% 50%; }

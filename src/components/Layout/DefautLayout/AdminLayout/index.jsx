@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import Sidebar from './Sidebar';
@@ -6,6 +7,7 @@ import Sidebar from './Sidebar';
 function AdminLayout({ children }) {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const checkScreenSize = () => {
@@ -24,9 +26,14 @@ function AdminLayout({ children }) {
         setSidebarCollapsed(!sidebarCollapsed);
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+    };
+
     return (
         <div className="admin-layout flex min-h-screen">
-            <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+            <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} />
             <div className="admin-main flex-grow flex flex-col" style={{ minHeight: '100vh' }}>
                 <Header onToggleSidebar={toggleSidebar} />
                 <main

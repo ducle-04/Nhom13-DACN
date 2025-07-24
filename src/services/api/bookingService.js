@@ -72,3 +72,45 @@ export const cancelBooking = async (token, bookingId) => {
         throw new Error(errorMessage);
     }
 };
+
+export const getAllBookings = async (token) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/all`, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi lấy danh sách tất cả đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const confirmBooking = async (token, bookingId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/confirm/${bookingId}`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi xác nhận đơn đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const deleteBooking = async (token, bookingId) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/delete/${bookingId}`, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi xóa đơn đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};

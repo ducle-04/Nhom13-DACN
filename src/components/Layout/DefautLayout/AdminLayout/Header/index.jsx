@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaUserCircle } from 'react-icons/fa';
-import { Loader2, User, Mail, Phone, MapPin, X, CheckCircle, XCircle, Save, LogOut } from 'lucide-react';
+import { Loader2, User, Mail, Phone, MapPin, X, CheckCircle, XCircle, Save } from 'lucide-react';
 
 // Toast Notification Component
 function Toast({ message, type, onClose }) {
@@ -175,14 +175,6 @@ function Header() {
         }
     };
 
-    // Xử lý đăng xuất
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        setShowMenu(false);
-        setShowModal(false);
-        navigate('/login');
-    };
-
     return (
         <>
             <header
@@ -210,7 +202,9 @@ function Header() {
                         <FaUserCircle
                             size={32}
                             className="text-primary cursor-pointer"
-                            onClick={() => setShowMenu(!showMenu)}
+                            onClick={() => {
+                                setShowMenu(!showMenu);
+                            }}
                         />
                         {showMenu && (
                             <div
@@ -226,13 +220,6 @@ function Header() {
                                 >
                                     <User className="w-4 h-4 mr-2" />
                                     Chỉnh sửa thông tin
-                                </button>
-                                <button
-                                    className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center"
-                                    onClick={handleLogout}
-                                >
-                                    <LogOut className="w-4 h-4 mr-2" />
-                                    Đăng xuất
                                 </button>
                             </div>
                         )}

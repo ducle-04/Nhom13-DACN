@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } from '../../services/api/cartService';
+import { createOrderFromProduct } from '../../services/api/orderService';
 
 const CartContext = createContext();
 
@@ -102,12 +103,22 @@ export const CartProvider = ({ children }) => {
         }
     };
 
+    const orderNow = async (orderData) => {
+        try {
+            const order = await createOrderFromProduct(token, orderData);
+            return order;
+        } catch (error) {
+            console.error('Lỗi khi đặt hàng trực tiếp:', error.message);
+            throw error;
+        }
+    };
+
     useEffect(() => {
         fetchCart();
     }, []);
 
     return (
-        <CartContext.Provider value={{ cartItems, totalPrice, addToCart: addToCartAction, updateQuantity, removeItem, clearCart: clearCartAction, fetchCart }}>
+        <CartContext.Provider value={{ cartItems, totalPrice, addToCart: addToCartAction, updateQuantity, removeItem, clearCart: clearCartAction, fetchCart, orderNow }}>
             {children}
         </CartContext.Provider>
     );
