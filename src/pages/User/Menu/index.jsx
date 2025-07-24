@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, Filter, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { getProducts, getProductTypes, getCategories } from '../../../services/api/productService';
 import { useCart } from '../../../Context/CartContext';
 import Cart from '../../../components/Layout/DefautLayout/UserLayout/Cart';
 import ProductDetails from '../../../components/OtherComponent/ProductDetails';
@@ -33,10 +33,8 @@ function Menu() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const productResponse = await axios.get('http://localhost:8080/api/products', {
-                    timeout: 5000,
-                });
-                const enrichedProducts = productResponse.data.products.map(product => ({
+                const productsData = await getProducts();
+                const enrichedProducts = productsData.map(product => ({
                     id: product.id,
                     name: product.name,
                     description: product.description || '',
@@ -52,24 +50,20 @@ function Menu() {
                 setProducts(enrichedProducts);
                 setFilteredProducts(enrichedProducts);
 
-                const productTypeResponse = await axios.get('http://localhost:8080/api/product-types', {
-                    timeout: 5000,
-                });
-                setProductTypes(productTypeResponse.data);
+                const productTypesData = await getProductTypes();
+                setProductTypes(productTypesData);
 
-                const categoryResponse = await axios.get('http://localhost:8080/api/categories', {
-                    timeout: 5000,
-                });
-                setCategories(categoryResponse.data);
+                const categoriesData = await getCategories();
+                setCategories(categoriesData);
 
                 setError(null);
             } catch (err) {
-                if (err.response?.status === 401) {
-                    setError('Vui lòng đăng nhập để xem thực đơn.');
+                if (err.message === 'Vui lòng đăng nhập để xem thực đơn.') {
+                    setError(err.message);
                     navigate('/login');
                 } else {
                     setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-                    console.error('Lỗi:', err.response?.data || err.message);
+                    console.error('Lỗi:', err);
                 }
             } finally {
                 setLoading(false);
@@ -121,10 +115,8 @@ function Menu() {
         setSelectedCategory('Tất cả');
         setSelectedPriceRange('Tất cả');
         try {
-            const response = await axios.get('http://localhost:8080/api/products', {
-                timeout: 5000,
-            });
-            const enrichedProducts = response.data.products.map(product => ({
+            const productsData = await getProducts();
+            const enrichedProducts = productsData.map(product => ({
                 id: product.id,
                 name: product.name,
                 description: product.description || '',
@@ -142,7 +134,7 @@ function Menu() {
             setError(null);
         } catch (err) {
             setError('Không thể tải lại danh sách sản phẩm. Vui lòng thử lại sau.');
-            console.error('Lỗi:', err.response?.data || err.message);
+            console.error('Lỗi:', err);
         }
     };
 

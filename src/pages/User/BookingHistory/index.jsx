@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { format } from 'date-fns';
 import { FaTimes, FaEye, FaCalendarAlt, FaClock, FaUsers, FaMapMarkerAlt, FaUtensils } from 'react-icons/fa';
-import Swal from 'sweetalert2'; // Nhập sweetalert2
-import { toast, ToastContainer } from 'react-toastify'; // Nhập react-toastify
-import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS của react-toastify
+import Swal from 'sweetalert2';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { getBookingHistory, getBookingDetails, cancelBooking } from '../../../services/api/bookingService';
 
 // Status Icon Component
 const StatusIcon = ({ status }) => {
@@ -261,20 +261,11 @@ function BookingHistory() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/booking/history', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setBookings(response.data);
+                const data = await getBookingHistory(token);
+                setBookings(data);
                 setLoading(false);
             } catch (err) {
-                if (err.response) {
-                    setError(err.response.data.error || 'Đã có lỗi xảy ra khi lấy lịch sử đặt bàn.');
-                } else {
-                    setError('Không thể kết nối đến server.');
-                }
+                setError(err.message || 'Đã có lỗi xảy ra khi lấy lịch sử đặt bàn.');
                 setLoading(false);
             }
         };
@@ -284,7 +275,6 @@ function BookingHistory() {
 
     // Handle cancel booking
     const handleCancel = async (id) => {
-        // Hiển thị hộp thoại xác nhận
         Swal.fire({
             title: 'Xác nhận hủy đơn',
             text: 'Bạn có chắc chắn muốn hủy đơn đặt bàn này?',
@@ -301,15 +291,8 @@ function BookingHistory() {
             if (result.isConfirmed) {
                 const token = localStorage.getItem('token');
                 try {
-                    const response = await axios.put(`http://localhost:8080/api/booking/user/cancel/${id}`, null, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    setBookings(bookings.map((booking) => (booking.id === id ? response.data : booking)));
-
-                    // Hiển thị thông báo thành công
+                    const updatedBooking = await cancelBooking(token, id);
+                    setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
                     toast.success('Hủy đơn đặt bàn thành công!', {
                         position: 'top-right',
                         autoClose: 3000,
@@ -320,7 +303,7 @@ function BookingHistory() {
                         theme: 'light',
                     });
                 } catch (err) {
-                    toast.error(err.response?.data.error || 'Lỗi khi hủy đơn đặt bàn.', {
+                    toast.error(err.message || 'Lỗi khi hủy đơn đặt bàn.', {
                         position: 'top-right',
                         autoClose: 3000,
                         hideProgressBar: false,
@@ -338,15 +321,10 @@ function BookingHistory() {
     const handleViewDetails = async (id) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:8080/api/booking/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            setSelectedBooking(response.data);
+            const bookingDetails = await getBookingDetails(token, id);
+            setSelectedBooking(bookingDetails);
         } catch (err) {
-            toast.error(err.response?.data.error || 'Lỗi khi lấy chi tiết đơn đặt bàn.', {
+            toast.error(err.message || 'Lỗi khi lấy chi tiết đơn đặt bàn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -576,7 +554,6 @@ function BookingHistory() {
                                                             title="Xem chi tiết"
                                                         >
                                                             <FaEye className="mr-2" />
-
                                                         </button>
                                                         {booking.status === 'PENDING' && (
                                                             <button
@@ -585,7 +562,6 @@ function BookingHistory() {
                                                                 title="Hủy đơn"
                                                             >
                                                                 <FaTimes className="mr-2" />
-
                                                             </button>
                                                         )}
                                                     </div>
@@ -620,7 +596,6 @@ function BookingHistory() {
                                                     title="Xem chi tiết"
                                                 >
                                                     <FaEye className="mr-1" />
-
                                                 </button>
                                                 {booking.status === 'PENDING' && (
                                                     <button
@@ -629,7 +604,6 @@ function BookingHistory() {
                                                         title="Hủy đơn"
                                                     >
                                                         <FaTimes className="mr-1" />
-
                                                     </button>
                                                 )}
                                             </div>

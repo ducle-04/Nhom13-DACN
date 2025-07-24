@@ -1,8 +1,17 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import menuCategories from '../../../../../../data/menuCategories';
+
 
 const MenuCategories = () => {
+    const menuCategories = [
+        { id: 1, name: 'Gà rán', img: '/images/Product/garan.jpg', slug: 'ga-ran' },
+        { id: 2, name: 'Mỳ ý', img: '/images/Product/myy.jpg', slug: 'my-y' },
+        { id: 3, name: 'Pizza', img: '/images/Product/pizza.png', slug: 'pizza' },
+        { id: 4, name: 'Cơm', img: '/images/Product/com.jpg', slug: 'com' },
+        { id: 5, name: 'Salad', img: '/images/Product/salad.jpg', slug: 'salad' },
+        { id: 6, name: 'Bánh', img: '/images/Product/banh.png', slug: 'banh' },
+    ];
+
     const sectionVariants = {
         hidden: { opacity: 0, y: 50 },
         visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },

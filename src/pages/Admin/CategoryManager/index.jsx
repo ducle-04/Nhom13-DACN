@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import axios from 'axios';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../../../services/api/categoryService';
 
 function CategoryManager() {
     const [categories, setCategories] = useState([]);
@@ -22,14 +22,11 @@ function CategoryManager() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/categories', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setCategories(response.data);
+                const categoriesData = await getCategories(token);
+                setCategories(categoriesData);
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải danh sách danh mục.');
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -70,23 +67,15 @@ function CategoryManager() {
 
         try {
             if (modalType === 'add') {
-                const response = await axios.post(
-                    'http://localhost:8080/api/categories',
-                    { name: form.name },
-                    { headers: { Authorization: `Bearer ${token}` }, timeout: 5000 }
-                );
-                setCategories([...categories, response.data]);
+                const newCategory = await createCategory(token, { name: form.name });
+                setCategories([...categories, newCategory]);
             } else if (modalType === 'edit' && selectedId) {
-                const response = await axios.put(
-                    `http://localhost:8080/api/categories/${selectedId}`,
-                    { name: form.name },
-                    { headers: { Authorization: `Bearer ${token}` }, timeout: 5000 }
-                );
-                setCategories(categories.map(cat => (cat.id === selectedId ? response.data : cat)));
+                const updatedCategory = await updateCategory(token, selectedId, { name: form.name });
+                setCategories(categories.map(cat => (cat.id === selectedId ? updatedCategory : cat)));
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.response?.data || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} danh mục.`);
+            setError(err);
             console.error(err);
         }
     };
@@ -100,14 +89,11 @@ function CategoryManager() {
 
         if (window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/categories/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
+                await deleteCategory(token, id);
                 setCategories(categories.filter(cat => cat.id !== id));
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể xóa danh mục.');
+                setError(err);
                 console.error(err);
             }
         }

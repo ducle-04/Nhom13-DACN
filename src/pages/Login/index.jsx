@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { FaFacebook, FaTwitter, FaGithub, FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
+import { login } from '../../services/api/authService';
 
 function Login() {
     const [formData, setFormData] = useState({
@@ -69,19 +69,12 @@ function Login() {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post(
-                'http://localhost:8080/api/auth/login',
-                {
-                    username: formData.username.trim(),
-                    password: formData.password.trim(),
-                },
-                {
-                    headers: { 'Content-Type': 'application/json' },
-                    timeout: 5000,
-                }
-            );
+            const response = await login({
+                username: formData.username.trim(),
+                password: formData.password.trim(),
+            });
 
-            const token = response.data.token;
+            const token = response.token;
             if (!token) {
                 throw new Error('No token received');
             }
@@ -99,7 +92,7 @@ function Login() {
                 }
             }, 1000);
         } catch (err) {
-            setError(err.response?.data || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(err);
             setSuccess('');
         } finally {
             setLoading(false);
@@ -144,8 +137,8 @@ function Login() {
                                 onChange={handleChange}
                                 placeholder="Nhập tên đăng nhập"
                                 className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.username
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                 disabled={loading}
                             />
@@ -176,8 +169,8 @@ function Login() {
                                 onChange={handleChange}
                                 placeholder="Nhập mật khẩu"
                                 className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.password
-                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                 disabled={loading}
                             />
@@ -242,9 +235,25 @@ function Login() {
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <svg
+                                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
                                 </svg>
                                 Đang xử lý...
                             </span>

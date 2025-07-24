@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Loader2, Key, User, Mail, Phone, MapPin, ArrowLeft, Edit3, Save, CheckCircle, XCircle, X } from 'lucide-react';
+import { getProfile, updateProfile } from '../../../services/api/userService';
 
 // Toast Notification Component
 function Toast({ message, type, onClose }) {
@@ -13,9 +13,7 @@ function Toast({ message, type, onClose }) {
     }, [onClose]);
 
     return (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 animate-slide-in ${type === 'success'
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-red-50 border border-red-200 text-red-800'
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 animate-slide-in ${type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'
             }`}>
             {type === 'success' ? (
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
@@ -90,23 +88,21 @@ function Profile() {
 
         const fetchUser = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/api/user/profile', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                setUser(response.data);
+                const userData = await getProfile(token);
+                setUser(userData);
                 setEditForm({
-                    email: response.data.email || '',
-                    fullname: response.data.fullname || '',
-                    address: response.data.address || '',
-                    phoneNumber: response.data.phoneNumber || '',
+                    email: userData.email || '',
+                    fullname: userData.fullname || '',
+                    address: userData.address || '',
+                    phoneNumber: userData.phoneNumber || '',
                 });
             } catch (err) {
                 console.error('Lỗi khi lấy thông tin profile:', err);
-                if (err.response?.status === 401) {
-                    setToast({ message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', type: 'error' });
+                if (err === 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.') {
+                    setToast({ message: err, type: 'error' });
                     localStorage.removeItem('token');
                 } else {
-                    setToast({ message: err.response?.data?.error || 'Không thể tải thông tin người dùng.', type: 'error' });
+                    setToast({ message: err, type: 'error' });
                 }
             } finally {
                 setLoading(false);
@@ -149,19 +145,13 @@ function Profile() {
         setIsConfirmOpen(false); // Đóng modal
         setUpdateLoading(true);
         try {
-            await axios.put(
-                'http://localhost:8080/api/user/profile',
-                {
-                    username: user.username,
-                    email: editForm.email,
-                    fullname: editForm.fullname,
-                    address: editForm.address || '',
-                    phoneNumber: editForm.phoneNumber || '',
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
+            await updateProfile(token, {
+                username: user.username,
+                email: editForm.email,
+                fullname: editForm.fullname,
+                address: editForm.address || '',
+                phoneNumber: editForm.phoneNumber || '',
+            });
 
             setUser((prev) => ({
                 ...prev,
@@ -174,11 +164,11 @@ function Profile() {
             setToast({ message: 'Cập nhật thông tin thành công! 🎉', type: 'success' });
         } catch (err) {
             console.error('Lỗi khi cập nhật profile:', err);
-            if (err.response?.status === 401) {
-                setToast({ message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', type: 'error' });
+            if (err === 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.') {
+                setToast({ message: err, type: 'error' });
                 localStorage.removeItem('token');
             } else {
-                setToast({ message: err.response?.data?.error || 'Không thể cập nhật thông tin.', type: 'error' });
+                setToast({ message: err, type: 'error' });
             }
         } finally {
             setUpdateLoading(false);
@@ -393,7 +383,7 @@ function Profile() {
                 </div>
             </div>
 
-            <style >{`
+            <style>{`
                 @keyframes slide-in {
                     from {
                         transform: translateX(100%);

@@ -1,38 +1,17 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { getCart, addToCart, updateCartQuantity, removeFromCart, clearCart } from '../../services/api/cartService';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
-
-    const API_BASE_URL = 'http://localhost:8080/api/cart';
-
-    const getAuthHeaders = () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            console.warn('Không tìm thấy token trong localStorage');
-            return {};
-        }
-        return {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        };
-    };
+    const token = localStorage.getItem('token');
 
     const fetchCart = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}`, {
-                headers: getAuthHeaders(),
-            });
-            const cartData = response.data.data || response.data.cart;
-            if (!cartData) {
-                setCartItems([]);
-                setTotalPrice(0);
-                return;
-            }
-            const items = cartData.cartItems.map(item => ({
+            const { cartItems, totalPrice } = await getCart(token);
+            const mappedItems = cartItems.map(item => ({
                 id: item.id,
                 productId: item.productId,
                 name: item.productName,
@@ -40,28 +19,19 @@ export const CartProvider = ({ children }) => {
                 price: item.price,
                 quantity: item.quantity,
             }));
-            setCartItems(items);
-            setTotalPrice(cartData.totalPrice);
+            setCartItems(mappedItems);
+            setTotalPrice(totalPrice);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-            console.error('Lỗi khi lấy giỏ hàng:', errorMessage);
+            console.error('Lỗi khi lấy giỏ hàng:', error.message);
             setCartItems([]);
             setTotalPrice(0);
         }
     };
 
-    const addToCart = async (productId, quantity) => {
+    const addToCartAction = async (productId, quantity) => {
         try {
-            const response = await axios.post(
-                `${API_BASE_URL}/add`,
-                null,
-                {
-                    params: { productId, quantity },
-                    headers: getAuthHeaders(),
-                }
-            );
-            const cartData = response.data.data || response.data.cart;
-            const items = cartData.cartItems.map(item => ({
+            const { cartItems, totalPrice } = await addToCart(token, productId, quantity);
+            const mappedItems = cartItems.map(item => ({
                 id: item.id,
                 productId: item.productId,
                 name: item.productName,
@@ -69,12 +39,11 @@ export const CartProvider = ({ children }) => {
                 price: item.price,
                 quantity: item.quantity,
             }));
-            setCartItems(items);
-            setTotalPrice(cartData.totalPrice);
+            setCartItems(mappedItems);
+            setTotalPrice(totalPrice);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-            console.error('Lỗi khi thêm vào giỏ hàng:', errorMessage);
-            throw new Error(errorMessage);
+            console.error('Lỗi khi thêm vào giỏ hàng:', error.message);
+            throw error;
         }
     };
 
@@ -86,16 +55,8 @@ export const CartProvider = ({ children }) => {
         if (newQuantity < 0) return;
 
         try {
-            const response = await axios.put(
-                `${API_BASE_URL}/update`,
-                null,
-                {
-                    params: { productId, quantity: newQuantity },
-                    headers: getAuthHeaders(),
-                }
-            );
-            const cartData = response.data.data || response.data.cart;
-            const items = cartData.cartItems.map(item => ({
+            const { cartItems, totalPrice } = await updateCartQuantity(token, productId, newQuantity);
+            const mappedItems = cartItems.map(item => ({
                 id: item.id,
                 productId: item.productId,
                 name: item.productName,
@@ -103,26 +64,18 @@ export const CartProvider = ({ children }) => {
                 price: item.price,
                 quantity: item.quantity,
             }));
-            setCartItems(items);
-            setTotalPrice(cartData.totalPrice);
+            setCartItems(mappedItems);
+            setTotalPrice(totalPrice);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-            console.error('Lỗi khi cập nhật số lượng:', errorMessage);
-            throw new Error(errorMessage);
+            console.error('Lỗi khi cập nhật số lượng:', error.message);
+            throw error;
         }
     };
 
     const removeItem = async (productId) => {
         try {
-            const response = await axios.delete(
-                `${API_BASE_URL}/remove`,
-                {
-                    params: { productId },
-                    headers: getAuthHeaders(),
-                }
-            );
-            const cartData = response.data.data || response.data.cart;
-            const items = cartData.cartItems.map(item => ({
+            const { cartItems, totalPrice } = await removeFromCart(token, productId);
+            const mappedItems = cartItems.map(item => ({
                 id: item.id,
                 productId: item.productId,
                 name: item.productName,
@@ -130,26 +83,22 @@ export const CartProvider = ({ children }) => {
                 price: item.price,
                 quantity: item.quantity,
             }));
-            setCartItems(items);
-            setTotalPrice(cartData.totalPrice);
+            setCartItems(mappedItems);
+            setTotalPrice(totalPrice);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-            console.error('Lỗi khi xóa sản phẩm:', errorMessage);
-            throw new Error(errorMessage);
+            console.error('Lỗi khi xóa sản phẩm:', error.message);
+            throw error;
         }
     };
 
-    const clearCart = async () => {
+    const clearCartAction = async () => {
         try {
-            await axios.delete(`${API_BASE_URL}/clear`, {
-                headers: getAuthHeaders(),
-            });
-            setCartItems([]);
-            setTotalPrice(0);
+            const { cartItems, totalPrice } = await clearCart(token);
+            setCartItems(cartItems);
+            setTotalPrice(totalPrice);
         } catch (error) {
-            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-            console.error('Lỗi khi xóa giỏ hàng:', errorMessage);
-            throw new Error(errorMessage);
+            console.error('Lỗi khi xóa giỏ hàng:', error.message);
+            throw error;
         }
     };
 
@@ -158,7 +107,7 @@ export const CartProvider = ({ children }) => {
     }, []);
 
     return (
-        <CartContext.Provider value={{ cartItems, totalPrice, addToCart, updateQuantity, removeItem, clearCart, fetchCart }}>
+        <CartContext.Provider value={{ cartItems, totalPrice, addToCart: addToCartAction, updateQuantity, removeItem, clearCart: clearCartAction, fetchCart }}>
             {children}
         </CartContext.Provider>
     );

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import Swal from 'sweetalert2'; // Dùng cho hộp thoại xác nhận
-import { toast, ToastContainer } from 'react-toastify'; // Nhập react-toastify
-import 'react-toastify/dist/ReactToastify.css'; // Nhập CSS của react-toastify
+import Swal from 'sweetalert2';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { createBooking } from '../../../services/api/bookingService';
 
 function Booking() {
   const [formData, setFormData] = useState({
@@ -68,16 +68,7 @@ function Booking() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.post(
-            'http://localhost:8080/api/booking/create',
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+          await createBooking(token, formData);
 
           // Hiển thị thông báo thành công bằng react-toastify
           toast.success('Đặt bàn thành công! Chúng tôi sẽ liên hệ để xác nhận.', {
@@ -101,11 +92,7 @@ function Booking() {
             specialRequests: '',
           });
         } catch (err) {
-          if (err.response) {
-            setError(err.response.data.error || 'Đã có lỗi xảy ra khi đặt bàn.');
-          } else {
-            setError('Không thể kết nối đến máy chủ.');
-          }
+          setError(err.message || 'Đã có lỗi xảy ra khi đặt bàn.');
         } finally {
           setLoading(false);
         }

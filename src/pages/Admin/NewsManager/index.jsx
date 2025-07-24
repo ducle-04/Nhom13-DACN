@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import { searchNews, createNews, updateNews, deleteNews } from '../../../services/api/newsService';
 
 function NewsManager() {
     const [newsList, setNewsList] = useState([]);
@@ -25,11 +25,8 @@ function NewsManager() {
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/api/news', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const enrichedNews = response.data.news.map(news => ({
+                const newsData = await searchNews(token, '');
+                const enrichedNews = newsData.map(news => ({
                     id: news.id,
                     title: news.title,
                     description: news.description || '',
@@ -39,7 +36,7 @@ function NewsManager() {
                 setNewsList(enrichedNews);
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải danh sách tin tức.');
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -121,11 +118,7 @@ function NewsManager() {
             };
 
             if (modalType === 'add') {
-                const response = await axios.post('http://localhost:8080/api/news', payload, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const newNews = response.data.news;
+                const newNews = await createNews(token, payload);
                 setNewsList([...newsList, {
                     id: newNews.id,
                     title: newNews.title,
@@ -134,11 +127,7 @@ function NewsManager() {
                     timestamp: newNews.timestamp,
                 }]);
             } else if (modalType === 'edit' && selectedNews) {
-                const response = await axios.put(`http://localhost:8080/api/news/${selectedNews.id}`, payload, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const updatedNews = response.data.news;
+                const updatedNews = await updateNews(token, selectedNews.id, payload);
                 setNewsList(newsList.map(n =>
                     n.id === selectedNews.id ? {
                         ...n,
@@ -151,7 +140,7 @@ function NewsManager() {
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.response?.data || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} tin tức.`);
+            setError(err);
             console.error(err);
         }
     };
@@ -165,14 +154,11 @@ function NewsManager() {
 
         if (window.confirm('Bạn có chắc chắn muốn xóa tin tức này?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/news/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
+                await deleteNews(token, id);
                 setNewsList(newsList.filter(n => n.id !== id));
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể xóa tin tức.');
+                setError(err);
                 console.error(err);
             }
         }
@@ -181,14 +167,8 @@ function NewsManager() {
     // Tìm kiếm tin tức theo tiêu đề
     const handleSearch = async () => {
         try {
-            const url = search
-                ? `http://localhost:8080/api/news/search?title=${encodeURIComponent(search)}`
-                : 'http://localhost:8080/api/news';
-            const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            const enrichedNews = response.data.news.map(news => ({
+            const newsData = await searchNews(token, search);
+            const enrichedNews = newsData.map(news => ({
                 id: news.id,
                 title: news.title,
                 description: news.description || '',
@@ -198,7 +178,7 @@ function NewsManager() {
             setNewsList(enrichedNews);
             setError(null);
         } catch (err) {
-            setError(err.response?.data || 'Không thể tìm kiếm tin tức.');
+            setError(err);
             console.error(err);
         }
     };
@@ -207,11 +187,8 @@ function NewsManager() {
     const handleClearFilter = async () => {
         setSearch('');
         try {
-            const response = await axios.get('http://localhost:8080/api/news', {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            const enrichedNews = response.data.news.map(news => ({
+            const newsData = await searchNews(token, '');
+            const enrichedNews = newsData.map(news => ({
                 id: news.id,
                 title: news.title,
                 description: news.description || '',
@@ -221,7 +198,7 @@ function NewsManager() {
             setNewsList(enrichedNews);
             setError(null);
         } catch (err) {
-            setError(err.response?.data || 'Không thể tải danh sách tin tức.');
+            setError(err);
             console.error(err);
         }
     };

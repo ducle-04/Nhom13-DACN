@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import axios from 'axios';
+import { getProductTypes, createProductType, updateProductType, deleteProductType } from '../../../services/api/productTypeService';
 
 function ProductTypeManager() {
     const [productTypes, setProductTypes] = useState([]);
@@ -22,14 +22,11 @@ function ProductTypeManager() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/product-types', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setProductTypes(response.data);
+                const productTypesData = await getProductTypes(token);
+                setProductTypes(productTypesData);
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải danh sách loại sản phẩm.');
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -70,23 +67,15 @@ function ProductTypeManager() {
 
         try {
             if (modalType === 'add') {
-                const response = await axios.post(
-                    'http://localhost:8080/api/product-types',
-                    { name: form.name },
-                    { headers: { Authorization: `Bearer ${token}` }, timeout: 5000 }
-                );
-                setProductTypes([...productTypes, response.data]);
+                const newProductType = await createProductType(token, { name: form.name });
+                setProductTypes([...productTypes, newProductType]);
             } else if (modalType === 'edit' && selectedId) {
-                const response = await axios.put(
-                    `http://localhost:8080/api/product-types/${selectedId}`,
-                    { name: form.name },
-                    { headers: { Authorization: `Bearer ${token}` }, timeout: 5000 }
-                );
-                setProductTypes(productTypes.map(pt => (pt.id === selectedId ? response.data : pt)));
+                const updatedProductType = await updateProductType(token, selectedId, { name: form.name });
+                setProductTypes(productTypes.map(pt => (pt.id === selectedId ? updatedProductType : pt)));
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.response?.data || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} loại sản phẩm.`);
+            setError(err);
             console.error(err);
         }
     };
@@ -100,14 +89,11 @@ function ProductTypeManager() {
 
         if (window.confirm('Bạn có chắc chắn muốn xóa loại sản phẩm này?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/product-types/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
+                await deleteProductType(token, id);
                 setProductTypes(productTypes.filter(pt => pt.id !== id));
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể xóa loại sản phẩm.');
+                setError(err);
                 console.error(err);
             }
         }

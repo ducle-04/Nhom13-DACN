@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaEye, FaTrash, FaUserPlus } from 'react-icons/fa';
-import axios from 'axios';
+import { getAllUsers, deleteUser, createUser } from '../../../services/api/userService';
 
 function UserManager() {
     const [users, setUsers] = useState([]);
@@ -23,10 +23,8 @@ function UserManager() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/api/user/all', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const enrichedUsers = response.data.map(user => ({
+                const usersData = await getAllUsers(token);
+                const enrichedUsers = usersData.map(user => ({
                     id: user.username,
                     username: user.username,
                     fullname: user.fullname || '',
@@ -38,8 +36,9 @@ function UserManager() {
                     roles: user.roles || ['USER'],
                 }));
                 setUsers(enrichedUsers);
+                setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải danh sách người dùng. Vui lòng kiểm tra token hoặc quyền.');
+                setError(err);
             } finally {
                 setLoading(false);
             }
@@ -56,12 +55,11 @@ function UserManager() {
 
         if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng ${username}?`)) {
             try {
-                await axios.delete(`http://localhost:8080/api/user/delete/${username}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
+                await deleteUser(token, username);
                 setUsers(users.filter((user) => user.id !== username));
+                setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể xóa người dùng. Vui lòng kiểm tra quyền.');
+                setError(err);
             }
         }
     };
@@ -75,6 +73,7 @@ function UserManager() {
     const handleAddUser = () => {
         setAddingUser(true);
         setAddForm({ username: '', email: '', password: '', enabled: true, fullname: '', address: '', phoneNumber: '' });
+        setError(null);
     };
 
     // Kiểm tra định dạng form thêm người dùng
@@ -105,7 +104,7 @@ function UserManager() {
 
         setCreateLoading(true);
         try {
-            const response = await axios.post('http://localhost:8080/api/user/create', {
+            const response = await createUser(token, {
                 username: addForm.username,
                 email: addForm.email,
                 password: addForm.password,
@@ -114,17 +113,15 @@ function UserManager() {
                 fullname: addForm.fullname,
                 address: addForm.address || undefined,
                 phoneNumber: addForm.phoneNumber || undefined,
-            }, {
-                headers: { Authorization: `Bearer ${token}` },
             });
 
             const newUser = {
-                id: response.data.username,
-                username: response.data.username,
-                fullname: response.data.fullname || '',
-                email: response.data.email || '',
-                address: response.data.address || '',
-                phoneNumber: response.data.phoneNumber || '',
+                id: response.username,
+                username: response.username,
+                fullname: response.fullname || '',
+                email: response.email || '',
+                address: response.address || '',
+                phoneNumber: response.phoneNumber || '',
                 status: addForm.enabled ? 'active' : 'inactive',
                 enabled: addForm.enabled,
                 roles: ['USER'],
@@ -133,7 +130,7 @@ function UserManager() {
             setAddingUser(false);
             setError(null);
         } catch (err) {
-            setError(err.response?.data || 'Không thể thêm người dùng.');
+            setError(err);
         } finally {
             setCreateLoading(false);
         }
@@ -237,7 +234,6 @@ function UserManager() {
                                 <label className="block font-medium">Trạng thái</label>
                                 <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.status === 'active' ? 'Hoạt động' : 'Ngừng'}</p>
                             </div>
-
                         </div>
                         <div className="flex justify-end mt-4">
                             <button

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, X, ArrowRight, Star } from 'lucide-react';
-import axios from 'axios';
+import { getBestSellingProducts } from '../../../../../../services/api/productService';
 import { useCart } from '../../../../../../Context/CartContext';
 import ProductDetails from '../../../../../OtherComponent/ProductDetails';
 import Cart from '../../Cart';
@@ -61,7 +61,7 @@ const BestSellingProducts = () => {
                     {/* Empty stars */}
                     {[...Array(emptyStars)].map((_, index) => (
                         <motion.div
-                            key={`empty-${index}`}
+                            key={`empty-${index}`} // Sửa lỗi: Sử dụng template string hợp lệ
                             whileHover={{ scale: 1.2, rotate: 5 }}
                             transition={{ duration: 0.2 }}
                         >
@@ -109,42 +109,35 @@ const BestSellingProducts = () => {
         const fetchBestSelling = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://localhost:8080/api/products', {
-                    timeout: 5000,
+                const bestSellers = await getBestSellingProducts();
+                const enrichedProducts = bestSellers.map(product => {
+                    const ratingData = generateRandomRating();
+                    return {
+                        id: product.id || Date.now() + Math.random(),
+                        name: product.name || 'Sản phẩm không tên',
+                        img: product.img || '/images/placeholder.jpg',
+                        originalPrice: product.originalPrice || 0,
+                        discountedPrice: product.discountedPrice || product.originalPrice || 0,
+                        discount: calculateDiscount(product.originalPrice, product.discountedPrice),
+                        description: product.description || '',
+                        productTypeId: product.productTypeId,
+                        productTypeName: product.productTypeName || 'Không có',
+                        status: product.status || 'AVAILABLE',
+                        categoryId: product.categoryId,
+                        categoryName: product.categoryName || 'Không có',
+                        rating: ratingData.rating,
+                        reviewCount: ratingData.reviewCount
+                    };
                 });
-                // Kiểm tra cấu trúc dữ liệu API
-                const rawProducts = Array.isArray(response.data) ? response.data : response.data.products || [];
-                // Lọc sản phẩm thuộc danh mục "Bestseller"
-                const bestSellers = rawProducts
-                    .filter(product => product.categoryName?.toLowerCase() === 'bestseller')
-                    .map(product => {
-                        const ratingData = generateRandomRating();
-                        return {
-                            id: product.id || Date.now() + Math.random(),
-                            name: product.name || 'Sản phẩm không tên',
-                            img: product.img || '/images/placeholder.jpg',
-                            originalPrice: product.originalPrice || 0,
-                            discountedPrice: product.discountedPrice || product.originalPrice || 0,
-                            discount: calculateDiscount(product.originalPrice, product.discountedPrice),
-                            description: product.description || '',
-                            productTypeId: product.productTypeId,
-                            productTypeName: product.productTypeName || 'Không có',
-                            status: product.status || 'AVAILABLE',
-                            categoryId: product.categoryId,
-                            categoryName: product.categoryName || 'Không có',
-                            rating: ratingData.rating,
-                            reviewCount: ratingData.reviewCount
-                        };
-                    });
-                setProducts(bestSellers);
+                setProducts(enrichedProducts);
                 setError(null);
             } catch (err) {
-                if (err.response?.status === 401) {
-                    setError('Vui lòng đăng nhập để xem sản phẩm bán chạy.');
+                if (err.message === 'Vui lòng đăng nhập để xem sản phẩm bán chạy.') {
+                    setError(err.message);
                     navigate('/login');
                 } else {
                     setError('Không thể tải danh sách sản phẩm bán chạy. Vui lòng thử lại sau.');
-                    console.error('Lỗi:', err.response?.data || err.message);
+                    console.error('Lỗi:', err);
                 }
             } finally {
                 setLoading(false);

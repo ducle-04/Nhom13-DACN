@@ -1,5 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { PublicPage } from './pages';
+import { PublicPage } from './router';
 import ScrollToTop from './components/OtherComponent/ScrollToTop';
 import { CartProvider } from '../src/Context/CartContext';
 import Cart from '../src/components/Layout/DefautLayout/UserLayout/Cart';

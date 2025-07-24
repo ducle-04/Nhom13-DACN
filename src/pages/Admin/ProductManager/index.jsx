@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
-import axios from 'axios';
+import { getProducts, getProductTypes, getCategories, searchProducts, createProduct, updateProduct, deleteProduct } from '../../../services/api/productService';
 
 function ProductManager() {
     const [products, setProducts] = useState([]);
@@ -41,11 +41,8 @@ function ProductManager() {
 
             try {
                 // Lấy danh sách sản phẩm
-                const productResponse = await axios.get('http://localhost:8080/api/products', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const enrichedProducts = productResponse.data.products.map(product => ({
+                const productsData = await getProducts();
+                const enrichedProducts = productsData.map(product => ({
                     id: product.id,
                     name: product.name,
                     description: product.description || '',
@@ -62,22 +59,16 @@ function ProductManager() {
                 setProducts(enrichedProducts);
 
                 // Lấy danh sách productTypes
-                const productTypeResponse = await axios.get('http://localhost:8080/api/product-types', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setProductTypes(productTypeResponse.data);
+                const productTypesData = await getProductTypes();
+                setProductTypes(productTypesData);
 
                 // Lấy danh sách categories
-                const categoryResponse = await axios.get('http://localhost:8080/api/categories', {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                setCategories(categoryResponse.data);
+                const categoriesData = await getCategories();
+                setCategories(categoriesData);
 
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải dữ liệu.');
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -191,24 +182,22 @@ function ProductManager() {
         }
 
         try {
+            const payload = {
+                name: form.name,
+                description: form.description || null,
+                originalPrice,
+                discountedPrice,
+                discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
+                productTypeId: parseInt(form.productTypeId),
+                productTypeName: form.productTypeName || null,
+                img: imageUrl,
+                status: form.status,
+                categoryId: form.categoryId ? parseInt(form.categoryId) : null,
+                categoryName: form.categoryName || null,
+            };
+
             if (modalType === 'add') {
-                const response = await axios.post('http://localhost:8080/api/products', {
-                    name: form.name,
-                    description: form.description || null,
-                    originalPrice,
-                    discountedPrice,
-                    discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
-                    productTypeId: parseInt(form.productTypeId),
-                    productTypeName: form.productTypeName || null,
-                    img: imageUrl,
-                    status: form.status,
-                    categoryId: form.categoryId ? parseInt(form.categoryId) : null,
-                    categoryName: form.categoryName || null,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const newProduct = response.data.product;
+                const newProduct = await createProduct(token, payload);
                 setProducts([...products, {
                     id: newProduct.id,
                     name: newProduct.name,
@@ -224,23 +213,7 @@ function ProductManager() {
                     categoryName: newProduct.categoryName || '',
                 }]);
             } else if (modalType === 'edit' && selectedProduct) {
-                const response = await axios.put(`http://localhost:8080/api/products/${selectedProduct.id}`, {
-                    name: form.name,
-                    description: form.description || null,
-                    originalPrice,
-                    discountedPrice,
-                    discount: ((originalPrice - discountedPrice) / originalPrice * 100).toFixed(2),
-                    productTypeId: parseInt(form.productTypeId),
-                    productTypeName: form.productTypeName || null,
-                    img: imageUrl,
-                    status: form.status,
-                    categoryId: form.categoryId ? parseInt(form.categoryId) : null,
-                    categoryName: form.categoryName || null,
-                }, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
-                const updatedProduct = response.data.product;
+                const updatedProduct = await updateProduct(token, selectedProduct.id, payload);
                 setProducts(products.map(p =>
                     p.id === selectedProduct.id ? {
                         ...p,
@@ -260,7 +233,7 @@ function ProductManager() {
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.response?.data || `Không thể ${modalType === 'add' ? 'thêm' : 'cập nhật'} sản phẩm.`);
+            setError(err);
             console.error(err);
         }
     };
@@ -274,14 +247,11 @@ function ProductManager() {
 
         if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/products/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 5000,
-                });
+                await deleteProduct(token, id);
                 setProducts(products.filter(p => p.id !== id));
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể xóa sản phẩm.');
+                setError(err);
                 console.error(err);
             }
         }
@@ -295,14 +265,8 @@ function ProductManager() {
         }
 
         try {
-            const url = search
-                ? `http://localhost:8080/api/products/search?name=${encodeURIComponent(search)}`
-                : 'http://localhost:8080/api/products';
-            const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            const enrichedProducts = response.data.products.map(product => ({
+            const productsData = await searchProducts(token, search);
+            const enrichedProducts = productsData.map(product => ({
                 id: product.id,
                 name: product.name,
                 description: product.description || '',
@@ -319,7 +283,7 @@ function ProductManager() {
             setProducts(enrichedProducts);
             setError(null);
         } catch (err) {
-            setError(err.response?.data || 'Không thể tìm kiếm sản phẩm.');
+            setError(err);
             console.error(err);
         }
     };
@@ -333,11 +297,8 @@ function ProductManager() {
         }
 
         try {
-            const response = await axios.get('http://localhost:8080/api/products', {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 5000,
-            });
-            const enrichedProducts = response.data.products.map(product => ({
+            const productsData = await getProducts();
+            const enrichedProducts = productsData.map(product => ({
                 id: product.id,
                 name: product.name,
                 description: product.description || '',
@@ -354,7 +315,7 @@ function ProductManager() {
             setProducts(enrichedProducts);
             setError(null);
         } catch (err) {
-            setError(err.response?.data || 'Không thể tải danh sách sản phẩm.');
+            setError(err);
             console.error(err);
         }
     };

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Newspaper, X, Calendar, ArrowRight } from 'lucide-react';
-import axios from 'axios';
+import { getNews } from '../../../services/api/newsService';
 
 function News() {
     const [newsList, setNewsList] = useState([]);
@@ -13,11 +13,9 @@ function News() {
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/api/news', {
-                    timeout: 5000,
-                });
+                const newsData = await getNews();
                 // Ánh xạ dữ liệu từ API để khớp với cấu trúc giao diện
-                const enrichedNews = response.data.news.map(news => ({
+                const enrichedNews = newsData.map(news => ({
                     id: news.id || Date.now() + Math.random(),
                     title: news.title || 'Tin tức không tên',
                     img: news.imageUrl || '/images/News/placeholder.jpg',
@@ -27,7 +25,7 @@ function News() {
                 setNewsList(enrichedNews);
                 setError(null);
             } catch (err) {
-                setError(err.response?.data || 'Không thể tải danh sách tin tức.');
+                setError(err);
                 console.error(err);
             } finally {
                 setLoading(false);
