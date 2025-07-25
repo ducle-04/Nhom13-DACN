@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { FaSearch, FaEye, FaEdit, FaTrash, FaPlus, FaTimes } from 'react-icons/fa';
 import { getProducts, getProductTypes, getCategories, searchProducts, createProduct, updateProduct, deleteProduct } from '../../../services/api/productService';
+import Swal from 'sweetalert2';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProductManager() {
     const [products, setProducts] = useState([]);
@@ -68,7 +71,7 @@ function ProductManager() {
 
                 setError(null);
             } catch (err) {
-                setError(err);
+                setError(err.message || 'Không thể tải dữ liệu.');
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -131,11 +134,9 @@ function ProductManager() {
         setForm((prev) => ({
             ...prev,
             [name]: name === 'originalPrice' || name === 'discountedPrice' ? parseFloat(value) || '' : value,
-            // Đồng bộ productTypeName khi chọn productTypeId
             ...(name === 'productTypeId' && {
                 productTypeName: productTypes.find(pt => pt.id === parseInt(value))?.name || ''
             }),
-            // Đồng bộ categoryName khi chọn categoryId
             ...(name === 'categoryId' && {
                 categoryName: categories.find(cat => cat.id === parseInt(value))?.name || ''
             }),
@@ -181,6 +182,20 @@ function ProductManager() {
             return;
         }
 
+        // Xác nhận lưu với SweetAlert2
+        const confirmResult = await Swal.fire({
+            title: modalType === 'add' ? 'Xác nhận thêm sản phẩm' : 'Xác nhận chỉnh sửa sản phẩm',
+            text: `Bạn có chắc chắn muốn ${modalType === 'add' ? 'thêm' : 'lưu thay đổi cho'} sản phẩm này?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4F46E5', // Indigo-600
+            cancelButtonColor: '#6B7280', // Gray-500
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
         try {
             const payload = {
                 name: form.name,
@@ -212,6 +227,15 @@ function ProductManager() {
                     categoryId: newProduct.categoryId,
                     categoryName: newProduct.categoryName || '',
                 }]);
+                toast.success('Thêm sản phẩm thành công!', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
             } else if (modalType === 'edit' && selectedProduct) {
                 const updatedProduct = await updateProduct(token, selectedProduct.id, payload);
                 setProducts(products.map(p =>
@@ -230,10 +254,28 @@ function ProductManager() {
                         categoryName: updatedProduct.categoryName || '',
                     } : p
                 ));
+                toast.success('Cập nhật sản phẩm thành công!', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
             }
             handleCloseModal();
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Không thể lưu sản phẩm.');
+            toast.error(err.message || 'Không thể lưu sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             console.error(err);
         }
     };
@@ -245,15 +287,44 @@ function ProductManager() {
             return;
         }
 
-        if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-            try {
-                await deleteProduct(token, id);
-                setProducts(products.filter(p => p.id !== id));
-                setError(null);
-            } catch (err) {
-                setError(err);
-                console.error(err);
-            }
+        const confirmResult = await Swal.fire({
+            title: 'Xác nhận xóa sản phẩm',
+            text: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444', // Red-500
+            cancelButtonColor: '#6B7280', // Gray-500
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            await deleteProduct(token, id);
+            setProducts(products.filter(p => p.id !== id));
+            toast.success('Xóa sản phẩm thành công!', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            setError(null);
+        } catch (err) {
+            setError(err.message || 'Không thể xóa sản phẩm.');
+            toast.error(err.message || 'Không thể xóa sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            console.error(err);
         }
     };
 
@@ -282,8 +353,26 @@ function ProductManager() {
             }));
             setProducts(enrichedProducts);
             setError(null);
+            toast.success('Tìm kiếm sản phẩm thành công!', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Không thể tìm kiếm sản phẩm.');
+            toast.error(err.message || 'Không thể tìm kiếm sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             console.error(err);
         }
     };
@@ -314,8 +403,26 @@ function ProductManager() {
             }));
             setProducts(enrichedProducts);
             setError(null);
+            toast.success('Đã xóa bộ lọc và tải lại danh sách sản phẩm!', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Không thể tải danh sách sản phẩm.');
+            toast.error(err.message || 'Không thể tải danh sách sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             console.error(err);
         }
     };
@@ -330,19 +437,20 @@ function ProductManager() {
         }
     };
 
-    if (loading) return <div className="p-6 text-center">Đang tải...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
+    if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
     return (
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold text-gray-800 font-montserrat">Quản lý Sản phẩm</h2>
+        <div className="container mx-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+            <ToastContainer />
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Sản phẩm</h2>
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative w-full md:w-80">
                         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
-                            className="w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="Tìm kiếm theo tên sản phẩm..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -356,7 +464,7 @@ function ProductManager() {
                         )}
                     </div>
                     <button
-                        className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
+                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
                         onClick={() => handleOpenModal('add')}
                     >
                         <FaPlus className="mr-2" /> Thêm sản phẩm
@@ -364,78 +472,80 @@ function ProductManager() {
                 </div>
             </div>
 
-            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-                <table className="min-w-full border-collapse">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border border-gray-300 p-3 text-left">#</th>
-                            <th className="border border-gray-300 p-3 text-left">Hình ảnh</th>
-                            <th className="border border-gray-300 p-3 text-left">Tên sản phẩm</th>
-                            <th className="border border-gray-300 p-3 text-left">Loại sản phẩm</th>
-                            <th className="border border-gray-300 p-3 text-left">Danh mục</th>
-                            <th className="border border-gray-300 p-3 text-left">Giá gốc</th>
-                            <th className="border border-gray-300 p-3 text-left">Giá khuyến mãi</th>
-                            <th className="border border-gray-300 p-3 text-left">Giảm giá</th>
-                            <th className="border border-gray-300 p-3 text-left">Trạng thái</th>
-                            <th className="border border-gray-300 p-3 text-left">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.length === 0 ? (
-                            <tr>
-                                <td colSpan="10" className="text-center text-gray-500 py-4">
-                                    Không có sản phẩm phù hợp
-                                </td>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-indigo-100 text-indigo-900">
+                                <th className="p-4 text-left font-semibold">#</th>
+                                <th className="p-4 text-left font-semibold">Hình ảnh</th>
+                                <th className="p-4 text-left font-semibold">Tên sản phẩm</th>
+                                <th className="p-4 text-left font-semibold">Loại sản phẩm</th>
+                                <th className="p-4 text-left font-semibold">Danh mục</th>
+                                <th className="p-4 text-left font-semibold">Giá gốc</th>
+                                <th className="p-4 text-left font-semibold">Giá khuyến mãi</th>
+                                <th className="p-4 text-left font-semibold">Giảm giá</th>
+                                <th className="p-4 text-left font-semibold">Trạng thái</th>
+                                <th className="p-4 text-left font-semibold">Thao tác</th>
                             </tr>
-                        ) : (
-                            products.map((p, idx) => (
-                                <tr key={p.id} className="hover:bg-gray-50 transition-colors duration-200">
-                                    <td className="border border-gray-300 p-3">{idx + 1}</td>
-                                    <td className="border border-gray-300 p-3">
-                                        <img
-                                            src={p.img}
-                                            alt={p.name}
-                                            className="w-12 h-12 object-cover rounded cursor-pointer"
-                                            onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
-                                            onClick={() => handleShowImage(p.img)}
-                                        />
-                                    </td>
-                                    <td className="border border-gray-300 p-3">{p.name}</td>
-                                    <td className="border border-gray-300 p-3">{p.productTypeName || 'Không có'}</td>
-                                    <td className="border border-gray-300 p-3">{p.categoryName || 'Không có'}</td>
-                                    <td className="border border-gray-300 p-3">{p.originalPrice.toLocaleString('vi-VN')} VNĐ</td>
-                                    <td className="border border-gray-300 p-3">{p.discountedPrice.toLocaleString('vi-VN')} VNĐ</td>
-                                    <td className="border border-gray-300 p-3">{p.discount}</td>
-                                    <td className="border border-gray-300 p-3">
-                                        <span
-                                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${p.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
-                                                p.status === 'OUT_OF_STOCK' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-gray-200 text-gray-800'
-                                                }`}
-                                        >
-                                            {p.status === 'AVAILABLE' ? 'Có sẵn' :
-                                                p.status === 'OUT_OF_STOCK' ? 'Hết hàng' : 'Ngừng kinh doanh'}
-                                        </span>
-                                    </td>
-                                    <td className="border border-gray-300 p-3 flex space-x-2">
-                                        <button
-                                            className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                                            onClick={() => handleOpenModal('edit', p)}
-                                        >
-                                            <FaEdit className="mr-1" />
-                                        </button>
-                                        <button
-                                            className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-                                            onClick={() => handleDelete(p.id)}
-                                        >
-                                            <FaTrash className="mr-1" />
-                                        </button>
+                        </thead>
+                        <tbody>
+                            {products.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center text-gray-500 py-6">
+                                        Không có sản phẩm phù hợp
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                products.map((p, idx) => (
+                                    <tr key={p.id} className="hover:bg-gray-50 transition-all duration-200">
+                                        <td className="p-4 border-t border-gray-200">{idx + 1}</td>
+                                        <td className="p-4 border-t border-gray-200">
+                                            <img
+                                                src={p.img}
+                                                alt={p.name}
+                                                className="w-12 h-12 object-cover rounded cursor-pointer"
+                                                onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
+                                                onClick={() => handleShowImage(p.img)}
+                                            />
+                                        </td>
+                                        <td className="p-4 border-t border-gray-200">{p.name}</td>
+                                        <td className="p-4 border-t border-gray-200">{p.productTypeName || 'Không có'}</td>
+                                        <td className="p-4 border-t border-gray-200">{p.categoryName || 'Không có'}</td>
+                                        <td className="p-4 border-t border-gray-200">{p.originalPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                        <td className="p-4 border-t border-gray-200">{p.discountedPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                        <td className="p-4 border-t border-gray-200">{p.discount}</td>
+                                        <td className="p-4 border-t border-gray-200">
+                                            <span
+                                                className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${p.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
+                                                    p.status === 'OUT_OF_STOCK' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-gray-100 text-gray-800'
+                                                    }`}
+                                            >
+                                                {p.status === 'AVAILABLE' ? 'Có sẵn' :
+                                                    p.status === 'OUT_OF_STOCK' ? 'Hết hàng' : 'Ngừng kinh doanh'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 border-t border-gray-200 flex space-x-3">
+                                            <button
+                                                className="p-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all duration-200"
+                                                onClick={() => handleOpenModal('edit', p)}
+                                            >
+                                                <FaEdit />
+                                            </button>
+                                            <button
+                                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+                                                onClick={() => handleDelete(p.id)}
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Modal xem ảnh lớn */}
@@ -449,10 +559,10 @@ function ProductManager() {
                             onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
                         />
                         <button
-                            className="absolute top-4 right-4 text-white text-2xl font-bold bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-700"
+                            className="absolute top-4 right-4 text-white text-2xl font-bold bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-700 transition-all duration-200"
                             onClick={handleCloseImageModal}
                         >
-                            ×
+                            <FaTimes />
                         </button>
                     </div>
                 </div>
@@ -461,140 +571,133 @@ function ProductManager() {
             {/* Modal thêm/chỉnh sửa */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl">
-                        <h3 className="text-lg font-bold mb-4">{modalType === 'add' ? 'Thêm sản phẩm' : 'Chỉnh sửa sản phẩm'}</h3>
-                        {error && <div className="text-red-500 mb-4">{error}</div>}
+                    <div className="bg-white rounded-xl p-8 w-full max-w-4xl shadow-2xl backdrop-blur-lg">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">{modalType === 'add' ? 'Thêm sản phẩm' : 'Chỉnh sửa sản phẩm'}</h3>
+                        {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
                         <form onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Cột trái */}
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block font-medium text-sm">Tên sản phẩm *</label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.name}
-                                            onChange={handleChange}
-                                            required
-                                            placeholder="Nhập tên sản phẩm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-medium text-sm">Giá gốc *</label>
-                                        <input
-                                            type="number"
-                                            name="originalPrice"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.originalPrice}
-                                            onChange={handleChange}
-                                            required
-                                            placeholder="Nhập giá gốc"
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-medium text-sm">Giá khuyến mãi</label>
-                                        <input
-                                            type="number"
-                                            name="discountedPrice"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.discountedPrice}
-                                            onChange={handleChange}
-                                            placeholder="Nhập giá khuyến mãi"
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-medium text-sm">Loại sản phẩm *</label>
-                                        <select
-                                            name="productTypeId"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.productTypeId}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="">Chọn loại sản phẩm</option>
-                                            {productTypes.map(pt => (
-                                                <option key={pt.id} value={pt.id}>{pt.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Tên sản phẩm *</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Nhập tên sản phẩm"
+                                    />
                                 </div>
-                                {/* Cột phải */}
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block font-medium text-sm">Trạng thái *</label>
-                                        <select
-                                            name="status"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.status}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="AVAILABLE">Có sẵn</option>
-                                            <option value="OUT_OF_STOCK">Hết hàng</option>
-                                            <option value="DISCONTINUED">Ngừng kinh doanh</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block font-medium text-sm">Danh mục</label>
-                                        <select
-                                            name="categoryId"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.categoryId}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Không có</option>
-                                            {categories.map(cat => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block font-medium text-sm">Hình ảnh</label>
-                                        <input
-                                            type="text"
-                                            name="img"
-                                            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={form.img}
-                                            onChange={handleChange}
-                                            placeholder="Nhập tên tệp hoặc URL"
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Giá gốc *</label>
+                                    <input
+                                        type="number"
+                                        name="originalPrice"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.originalPrice}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Nhập giá gốc"
+                                        min="0"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Giá khuyến mãi</label>
+                                    <input
+                                        type="number"
+                                        name="discountedPrice"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.discountedPrice}
+                                        onChange={handleChange}
+                                        placeholder="Nhập giá khuyến mãi"
+                                        min="0"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Loại sản phẩm *</label>
+                                    <select
+                                        name="productTypeId"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.productTypeId}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Chọn loại sản phẩm</option>
+                                        {productTypes.map(pt => (
+                                            <option key={pt.id} value={pt.id}>{pt.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Trạng thái *</label>
+                                    <select
+                                        name="status"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.status}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="AVAILABLE">Có sẵn</option>
+                                        <option value="OUT_OF_STOCK">Hết hàng</option>
+                                        <option value="DISCONTINUED">Ngừng kinh doanh</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Danh mục</label>
+                                    <select
+                                        name="categoryId"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.categoryId}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Không có</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Hình ảnh</label>
+                                    <input
+                                        type="text"
+                                        name="img"
+                                        className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                        value={form.img}
+                                        onChange={handleChange}
+                                        placeholder="Nhập tên tệp hoặc URL"
+                                    />
+                                    {form.img && (
+                                        <img
+                                            src={form.img.startsWith('http') ? form.img : `${baseImagePath}${form.img}`}
+                                            alt="Preview"
+                                            className="w-20 h-20 object-cover mt-2 rounded"
+                                            onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
                                         />
-                                        {form.img && (
-                                            <img
-                                                src={form.img.startsWith('http') ? form.img : `${baseImagePath}${form.img}`}
-                                                alt="Preview"
-                                                className="w-20 h-20 object-cover mt-2 rounded"
-                                                onError={(e) => { e.target.src = '/images/Product/placeholder.jpg'; }}
-                                            />
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             </div>
-                            {/* Mô tả chiếm toàn bộ chiều rộng */}
                             <div className="mt-4">
-                                <label className="block font-medium text-sm">Mô tả</label>
+                                <label className="block text-sm font-medium text-gray-700">Mô tả</label>
                                 <textarea
                                     name="description"
-                                    className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={form.description}
                                     onChange={handleChange}
                                     placeholder="Nhập mô tả sản phẩm"
                                     rows="4"
                                 />
                             </div>
-                            <div className="flex justify-end mt-6 space-x-2">
+                            <div className="flex justify-end mt-6 space-x-3">
                                 <button
                                     type="button"
-                                    className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"
                                     onClick={handleCloseModal}
                                 >
                                     Hủy
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200"
                                 >
                                     {modalType === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}
                                 </button>

@@ -126,7 +126,7 @@ const OrderHistoryPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-25 to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
             <ToastContainer />
 
             {/* Header Section */}

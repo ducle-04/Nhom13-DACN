@@ -182,8 +182,8 @@ function Header() {
                 style={{ height: 64, zIndex: 100, position: 'sticky', top: 0 }}
             >
                 <div className="admin-header-left flex items-center gap-3">
-                    <span className="fw-bold text-2xl text-primary" style={{ letterSpacing: 1 }}>
-                        FoodieHub <span className="text-gray-800" style={{ fontWeight: 400 }}>Admin</span>
+                    <span className="text-3xl font-extrabold text-indigo-900 tracking-tight" style={{ letterSpacing: 1 }}>
+                        FoodieHub <span className="text-3xl font-extrabold text-indigo-900 tracking-tight" style={{ fontWeight: 400 }}>Admin</span>
                     </span>
                 </div>
                 <div className="admin-header-right flex items-center gap-4">

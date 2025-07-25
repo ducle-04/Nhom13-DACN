@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { getProductTypes, createProductType, updateProductType, deleteProductType } from '../../../services/api/productTypeService';
+import Swal from 'sweetalert2';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function ProductTypeManager() {
     const [productTypes, setProductTypes] = useState([]);
@@ -26,7 +29,16 @@ function ProductTypeManager() {
                 setProductTypes(productTypesData);
                 setError(null);
             } catch (err) {
-                setError(err);
+                setError(err.message || 'Không thể tải dữ liệu.');
+                toast.error(err.message || 'Không thể tải dữ liệu.', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -65,17 +77,58 @@ function ProductTypeManager() {
             return;
         }
 
+        // Xác nhận lưu với SweetAlert2
+        const confirmResult = await Swal.fire({
+            title: modalType === 'add' ? 'Xác nhận thêm loại sản phẩm' : 'Xác nhận chỉnh sửa loại sản phẩm',
+            text: `Bạn có chắc chắn muốn ${modalType === 'add' ? 'thêm' : 'lưu thay đổi cho'} loại sản phẩm này?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4F46E5', // Indigo-600
+            cancelButtonColor: '#6B7280', // Gray-500
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
         try {
             if (modalType === 'add') {
                 const newProductType = await createProductType(token, { name: form.name });
                 setProductTypes([...productTypes, newProductType]);
+                toast.success('Thêm loại sản phẩm thành công!', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
             } else if (modalType === 'edit' && selectedId) {
                 const updatedProductType = await updateProductType(token, selectedId, { name: form.name });
                 setProductTypes(productTypes.map(pt => (pt.id === selectedId ? updatedProductType : pt)));
+                toast.success('Cập nhật loại sản phẩm thành công!', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
             }
             handleCloseModal();
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Không thể lưu loại sản phẩm.');
+            toast.error(err.message || 'Không thể lưu loại sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             console.error(err);
         }
     };
@@ -87,105 +140,137 @@ function ProductTypeManager() {
             return;
         }
 
-        if (window.confirm('Bạn có chắc chắn muốn xóa loại sản phẩm này?')) {
-            try {
-                await deleteProductType(token, id);
-                setProductTypes(productTypes.filter(pt => pt.id !== id));
-                setError(null);
-            } catch (err) {
-                setError(err);
-                console.error(err);
-            }
+        const confirmResult = await Swal.fire({
+            title: 'Xác nhận xóa loại sản phẩm',
+            text: 'Bạn có chắc chắn muốn xóa loại sản phẩm này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444', // Red-500
+            cancelButtonColor: '#6B7280', // Gray-500
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            await deleteProductType(token, id);
+            setProductTypes(productTypes.filter(pt => pt.id !== id));
+            toast.success('Xóa loại sản phẩm thành công!', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            setError(null);
+        } catch (err) {
+            setError(err.message || 'Không thể xóa loại sản phẩm.');
+            toast.error(err.message || 'Không thể xóa loại sản phẩm.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            console.error(err);
         }
     };
 
-    if (loading) return <div className="p-6 text-center text-gray-600 text-lg">Đang tải...</div>;
-    if (error) return <div className="p-6 text-center text-red-600 text-lg">{error}</div>;
+    if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
+    if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="container mx-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+            <ToastContainer />
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-3xl font-bold text-gray-900 font-montserrat">Quản lý Loại Sản Phẩm</h2>
+                <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Loại Sản Phẩm</h2>
                     <button
                         onClick={() => handleOpenModal('add')}
-                        className="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-200"
+                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
                     >
                         <FaPlus className="mr-2" /> Thêm loại sản phẩm
                     </button>
                 </div>
-                <div className="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-100">
-                    <table className="min-w-full border-collapse">
-                        <thead>
-                            <tr className="bg-gradient-to-r from-gray-100 to-gray-200">
-                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">STT</th>
-                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">Tên</th>
-                                <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold text-gray-700">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {productTypes.length === 0 ? (
-                                <tr>
-                                    <td colSpan="3" className="text-center text-gray-500 py-6">
-                                        Không có loại sản phẩm nào
-                                    </td>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-indigo-100 text-indigo-900">
+                                    <th className="p-4 text-left font-semibold">#</th>
+                                    <th className="p-4 text-left font-semibold">Tên</th>
+                                    <th className="p-4 text-left font-semibold">Thao tác</th>
                                 </tr>
-                            ) : (
-                                productTypes.map((pt, index) => (
-                                    <tr key={pt.id} className="hover:bg-gray-50 transition-all duration-200">
-                                        <td className="border-b border-gray-200 p-4 text-gray-700">{index + 1}</td>
-                                        <td className="border-b border-gray-200 p-4 text-gray-700">{pt.name}</td>
-                                        <td className="border-b border-gray-200 p-4 flex space-x-2">
-                                            <button
-                                                onClick={() => handleOpenModal('edit', pt)}
-                                                className="p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-all duration-200"
-                                            >
-                                                <FaEdit />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(pt.id)}
-                                                className="p-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-all duration-200"
-                                            >
-                                                <FaTrash />
-                                            </button>
+                            </thead>
+                            <tbody>
+                                {productTypes.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="3" className="text-center text-gray-500 py-6">
+                                            Không có loại sản phẩm nào
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    productTypes.map((pt, index) => (
+                                        <tr key={pt.id} className="hover:bg-gray-50 transition-all duration-200">
+                                            <td className="p-4 border-t border-gray-200">{index + 1}</td>
+                                            <td className="p-4 border-t border-gray-200">{pt.name}</td>
+                                            <td className="p-4 border-t border-gray-200 flex space-x-3">
+                                                <button
+                                                    onClick={() => handleOpenModal('edit', pt)}
+                                                    className="p-2 bg-indigo-500 text-white rounded-full shadow-sm hover:bg-indigo-600 transition-all duration-200"
+                                                >
+                                                    <FaEdit />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(pt.id)}
+                                                    className="p-2 bg-red-500 text-white rounded-full shadow-sm hover:bg-red-600 transition-all duration-200"
+                                                >
+                                                    <FaTrash />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 {showModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md">
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">
+                        <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl backdrop-blur-lg">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-6">
                                 {modalType === 'add' ? 'Thêm loại sản phẩm' : 'Chỉnh sửa loại sản phẩm'}
                             </h3>
-                            {error && <div className="text-red-600 mb-4 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
+                            {error && <div className="text-red-500 mb-4 text-center bg-red-50 p-3 rounded-lg">{error}</div>}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
-                                    <label className="block font-medium text-sm text-gray-700 mb-1">Tên loại sản phẩm *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại sản phẩm *</label>
                                     <input
                                         type="text"
                                         name="name"
                                         value={form.name}
                                         onChange={handleChange}
-                                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
                                         required
                                         placeholder="Nhập tên loại sản phẩm"
                                     />
                                 </div>
-                                <div className="flex justify-end space-x-2">
+                                <div className="flex justify-end space-x-3">
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200"
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"
                                     >
                                         Hủy
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200"
                                     >
                                         {modalType === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}
                                     </button>

@@ -28,7 +28,7 @@ function Sidebar({ onLogout }) {
             <nav className="sidebar-menu flex-grow">
                 <ul className="flex flex-col mt-3">
                     {menu.map(item => (
-                        <li className="nav-item" key={item.path}>
+                        <li className="nav-item my-1" key={item.path}>
                             <Link
                                 to={item.path}
                                 className={`nav-link flex items-center px-4 py-2 ${location.pathname.startsWith(item.path) ? 'bg-blue-600 text-white' : 'text-gray-300'}`}

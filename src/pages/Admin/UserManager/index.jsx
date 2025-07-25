@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { FaEye, FaTrash, FaUserPlus } from 'react-icons/fa';
 import { getAllUsers, deleteUser, createUser } from '../../../services/api/userService';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
 
 function UserManager() {
     const [users, setUsers] = useState([]);
@@ -18,6 +21,15 @@ function UserManager() {
         const fetchUsers = async () => {
             if (!token) {
                 setError('Vui lòng đăng nhập với vai trò ADMIN.');
+                toast.error('Vui lòng đăng nhập với vai trò ADMIN.', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
                 setLoading(false);
                 return;
             }
@@ -38,7 +50,16 @@ function UserManager() {
                 setUsers(enrichedUsers);
                 setError(null);
             } catch (err) {
-                setError(err);
+                setError(err.message || 'Không thể tải danh sách người dùng.');
+                toast.error(err.message || 'Không thể tải danh sách người dùng.', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
             } finally {
                 setLoading(false);
             }
@@ -50,17 +71,55 @@ function UserManager() {
     const handleDelete = async (username) => {
         if (!token) {
             setError('Vui lòng đăng nhập để thực hiện hành động này.');
+            toast.error('Vui lòng đăng nhập để thực hiện hành động này.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             return;
         }
 
-        if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng ${username}?`)) {
-            try {
-                await deleteUser(token, username);
-                setUsers(users.filter((user) => user.id !== username));
-                setError(null);
-            } catch (err) {
-                setError(err);
-            }
+        const confirmResult = await Swal.fire({
+            title: 'Xác nhận xóa người dùng',
+            text: `Bạn có chắc chắn muốn xóa người dùng ${username}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            await deleteUser(token, username);
+            setUsers(users.filter((user) => user.id !== username));
+            toast.success(`Xóa người dùng ${username} thành công!`, {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            setError(null);
+        } catch (err) {
+            setError(err.message || 'Không thể xóa người dùng.');
+            toast.error(err.message || 'Không thể xóa người dùng.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
         }
     };
 
@@ -100,7 +159,18 @@ function UserManager() {
 
     // Thêm người dùng
     const handleCreate = async () => {
-        if (!validateAddForm()) return;
+        if (!validateAddForm()) {
+            toast.error(error, {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+            return;
+        }
 
         setCreateLoading(true);
         try {
@@ -128,116 +198,129 @@ function UserManager() {
             };
             setUsers([...users, newUser]);
             setAddingUser(false);
+            toast.success(`Thêm người dùng ${response.username} thành công!`, {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
             setError(null);
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Không thể tạo người dùng.');
+            toast.error(err.message || 'Không thể tạo người dùng.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
         } finally {
             setCreateLoading(false);
         }
     };
 
-    if (loading) return <div className="p-6 text-center">Đang tải...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
+    if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 font-montserrat">Quản lý Khách Hàng</h2>
+        <div className="container mx-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+            <ToastContainer />
+            <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản Lý Người Dùng</h2>
                 <button
-                    className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
+                    className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-200"
                     onClick={handleAddUser}
                 >
-                    <FaUserPlus className="mr-2" /> Thêm người dùng
+                    <FaUserPlus className="mr-2" /> Thêm Người Dùng
                 </button>
             </div>
-            <div className="bg-white shadow-lg rounded-lg overflow-x-auto">
-                <table className="w-full border-collapse min-w-[800px]">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border border-gray-300 p-3 text-left">Tên đăng nhập</th>
-                            <th className="border border-gray-300 p-3 text-left">Họ và Tên</th>
-                            <th className="border border-gray-300 p-3 text-left">Email</th>
-                            <th className="border border-gray-300 p-3 text-left">Địa chỉ</th>
-                            <th className="border border-gray-300 p-3 text-left">Số điện thoại</th>
-                            <th className="border border-gray-300 p-3 text-left">Trạng thái</th>
-                            <th className="border border-gray-300 p-3 text-left">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.length === 0 ? (
-                            <tr>
-                                <td colSpan="7" className="text-center text-gray-500 py-4">Không có người dùng nào</td>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-indigo-100 text-indigo-900">
+                                <th className="p-4 text-left font-semibold">Tên Đăng Nhập</th>
+                                <th className="p-4 text-left font-semibold">Họ và Tên</th>
+                                <th className="p-4 text-left font-semibold">Email</th>
+                                <th className="p-4 text-left font-semibold">Địa Chỉ</th>
+                                <th className="p-4 text-left font-semibold">Số Điện Thoại</th>
+                                <th className="p-4 text-left font-semibold">Trạng Thái</th>
+                                <th className="p-4 text-left font-semibold">Hành Động</th>
                             </tr>
-                        ) : (
-                            users.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition-colors duration-200">
-                                    <td className="border border-gray-300 p-3">{user.username}</td>
-                                    <td className="border border-gray-300 p-3">{user.fullname || 'N/A'}</td>
-                                    <td className="border border-gray-300 p-3">{user.email || 'N/A'}</td>
-                                    <td className="border border-gray-300 p-3">{user.address || 'N/A'}</td>
-                                    <td className="border border-gray-300 p-3">{user.phoneNumber || 'N/A'}</td>
-                                    <td className="border border-gray-300 p-3">
-                                        <span
-                                            className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}`}
-                                        >
-                                            {user.status === 'active' ? 'Hoạt động' : 'Ngừng'}
-                                        </span>
-                                    </td>
-                                    <td className="border border-gray-300 p-3 flex space-x-2">
-                                        <button
-                                            className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
-                                            onClick={() => handleView(user)}
-                                        >
-                                            <FaEye className="mr-1" />
-                                        </button>
-                                        <button
-                                            className="flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-                                            onClick={() => handleDelete(user.id)}
-                                        >
-                                            <FaTrash className="mr-1" />
-                                        </button>
-                                    </td>
+                        </thead>
+                        <tbody>
+                            {users.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center text-gray-500 py-6">Không có người dùng nào</td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                users.map((user) => (
+                                    <tr key={user.id} className="hover:bg-gray-50 transition-all duration-200">
+                                        <td className="p-4 border-t border-gray-200">{user.username}</td>
+                                        <td className="p-4 border-t border-gray-200">{user.fullname || 'N/A'}</td>
+                                        <td className="p-4 border-t border-gray-200">{user.email || 'N/A'}</td>
+                                        <td className="p-4 border-t border-gray-200">{user.address || 'N/A'}</td>
+                                        <td className="p-4 border-t border-gray-200">{user.phoneNumber || 'N/A'}</td>
+                                        <td className="p-4 border-t border-gray-200">
+                                            <span
+                                                className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                    }`}
+                                            >
+                                                {user.status === 'active' ? 'Hoạt động' : 'Ngừng'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 border-t border-gray-200 flex space-x-3">
+                                            <button
+                                                className="p-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all duration-200"
+                                                onClick={() => handleView(user)}
+                                                title="Xem chi tiết"
+                                            >
+                                                <FaEye />
+                                            </button>
+                                            <button
+                                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+                                                onClick={() => handleDelete(user.id)}
+                                                title="Xóa"
+                                            >
+                                                <FaTrash />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Modal xem chi tiết */}
             {viewingUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
-                        <h3 className="text-lg font-bold mb-4">Chi tiết người dùng</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block font-medium">Tên đăng nhập</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.username}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium">Họ và Tên</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.fullname || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium">Email</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.email || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium">Địa chỉ</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.address || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium">Số điện thoại</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.phoneNumber || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block font-medium">Trạng thái</label>
-                                <p className="w-full border p-2 rounded bg-gray-100">{viewingUser.status === 'active' ? 'Hoạt động' : 'Ngừng'}</p>
-                            </div>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-8 w-full max-w-4xl shadow-2xl backdrop-blur-lg">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Chi Tiết Người Dùng</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Tên Đăng Nhập', value: viewingUser.username },
+                                { label: 'Họ và Tên', value: viewingUser.fullname || 'N/A' },
+                                { label: 'Email', value: viewingUser.email || 'N/A' },
+                                { label: 'Địa Chỉ', value: viewingUser.address || 'N/A' },
+                                { label: 'Số Điện Thoại', value: viewingUser.phoneNumber || 'N/A' },
+                                { label: 'Trạng Thái', value: viewingUser.status === 'active' ? 'Hoạt động' : 'Ngừng' },
+                            ].map((item, index) => (
+                                <div key={index}>
+                                    <label className="block text-sm font-medium text-gray-700">{item.label}:</label>
+                                    <p className="mt-1 text-sm text-gray-600">{item.value}</p>
+                                </div>
+                            ))}
                         </div>
-                        <div className="flex justify-end mt-4">
+                        <div className="flex justify-end mt-6">
                             <button
-                                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
+                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"
                                 onClick={() => setViewingUser(null)}
                             >
                                 Đóng
@@ -249,15 +332,15 @@ function UserManager() {
 
             {/* Modal thêm người dùng */}
             {addingUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                        <h3 className="text-lg font-bold mb-4">Thêm người dùng</h3>
-                        <div className="space-y-3">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-8 w-full max-w-4xl shadow-2xl backdrop-blur-lg">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Thêm Người Dùng</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
-                                <label className="block font-medium">Username</label>
+                                <label className="block text-sm font-medium text-gray-700">Tên Đăng Nhập *</label>
                                 <input
                                     type="text"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.username}
                                     onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
                                     required
@@ -265,10 +348,10 @@ function UserManager() {
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Họ và Tên</label>
+                                <label className="block text-sm font-medium text-gray-700">Họ và Tên *</label>
                                 <input
                                     type="text"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.fullname}
                                     onChange={(e) => setAddForm({ ...addForm, fullname: e.target.value })}
                                     required
@@ -276,10 +359,10 @@ function UserManager() {
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Email</label>
+                                <label className="block text-sm font-medium text-gray-700">Email *</label>
                                 <input
                                     type="email"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.email}
                                     onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                                     required
@@ -287,10 +370,10 @@ function UserManager() {
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Mật khẩu</label>
+                                <label className="block text-sm font-medium text-gray-700">Mật Khẩu *</label>
                                 <input
                                     type="password"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.password}
                                     onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
                                     required
@@ -298,29 +381,29 @@ function UserManager() {
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Địa chỉ</label>
+                                <label className="block text-sm font-medium text-gray-700">Địa Chỉ</label>
                                 <input
                                     type="text"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.address}
                                     onChange={(e) => setAddForm({ ...addForm, address: e.target.value })}
                                     disabled={createLoading}
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Số điện thoại</label>
+                                <label className="block text-sm font-medium text-gray-700">Số Điện Thoại</label>
                                 <input
                                     type="tel"
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.phoneNumber}
                                     onChange={(e) => setAddForm({ ...addForm, phoneNumber: e.target.value })}
                                     disabled={createLoading}
                                 />
                             </div>
                             <div>
-                                <label className="block font-medium">Trạng thái</label>
+                                <label className="block text-sm font-medium text-gray-700">Trạng Thái</label>
                                 <select
-                                    className="w-full border p-2 rounded"
+                                    className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                     value={addForm.enabled ? 'active' : 'inactive'}
                                     onChange={(e) => setAddForm({ ...addForm, enabled: e.target.value === 'active' })}
                                     disabled={createLoading}
@@ -330,17 +413,17 @@ function UserManager() {
                                 </select>
                             </div>
                         </div>
-                        {error && <p className="text-red-500 text-sm mt-3 text-center">{error}</p>}
-                        <div className="flex justify-end mt-4 space-x-2">
+                        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+                        <div className="flex justify-end mt-6 space-x-3">
                             <button
-                                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
+                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"
                                 onClick={() => setAddingUser(false)}
                                 disabled={createLoading}
                             >
                                 Hủy
                             </button>
                             <button
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 flex items-center justify-center"
                                 onClick={handleCreate}
                                 disabled={createLoading}
                             >

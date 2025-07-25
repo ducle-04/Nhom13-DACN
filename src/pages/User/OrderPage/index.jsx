@@ -139,7 +139,7 @@ const OrderPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
             <ToastContainer />
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-600/10 rounded-full blur-3xl"></div>
@@ -210,21 +210,6 @@ const OrderPage = () => {
                                             <p className="text-gray-500 text-sm mb-3">
                                                 Đơn giá: <span className="font-medium text-blue-600">{(item.price || 0).toLocaleString('vi-VN')} VNĐ</span>
                                             </p>
-                                            {item.description && (
-                                                <p className="text-gray-500 text-sm mb-3">
-                                                    Mô tả: <span className="font-medium">{item.description}</span>
-                                                </p>
-                                            )}
-                                            {item.category && (
-                                                <p className="text-gray-500 text-sm mb-3">
-                                                    Danh mục: <span className="font-medium">{item.category}</span>
-                                                </p>
-                                            )}
-                                            {item.productType && (
-                                                <p className="text-gray-500 text-sm mb-3">
-                                                    Loại sản phẩm: <span className="font-medium">{item.productType}</span>
-                                                </p>
-                                            )}
 
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center bg-gray-100 rounded-xl p-1">

@@ -102,7 +102,7 @@ function Footer() {
                         </h5>
                         <ul className="space-y-2">
                             {[
-                                { to: '/order', label: 'Đặt hàng' },
+                                { to: '/orders', label: 'Đặt hàng' },
                                 { to: '/delivery', label: 'Giao hàng' },
                                 { to: '/promotions', label: 'Khuyến mãi' },
                                 { to: '/support', label: 'Hỗ trợ' },
