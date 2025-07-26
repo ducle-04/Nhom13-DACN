@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { FaCheck, FaTimes, FaTrash, FaEye } from 'react-icons/fa';
-import { getAllBookings, confirmBooking, cancelBooking, deleteBooking, getBookingDetails } from '../../../services/api/bookingService';
+import { FaCheck, FaTimes, FaTrash, FaEye, FaCheckCircle, FaBan } from 'react-icons/fa';
+import { getAllBookings, confirmBooking, cancelBooking, deleteBooking, getBookingDetails, approveCancelBooking, rejectCancelBooking } from '../../../services/api/bookingService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
@@ -124,6 +124,84 @@ function AdminBookingManagement() {
         }
     };
 
+    const handleApproveCancel = async (id) => {
+        const confirmResult = await Swal.fire({
+            title: 'Xác nhận yêu cầu hủy',
+            text: 'Bạn có chắc muốn đồng ý với yêu cầu hủy đơn đặt bàn này? Đơn sẽ chuyển sang trạng thái Đã hủy.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4F46E5',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            const updatedBooking = await approveCancelBooking(token, id);
+            setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
+            toast.success('Đồng ý yêu cầu hủy thành công! Đơn đã chuyển sang trạng thái Đã hủy.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+        } catch (err) {
+            toast.error(err.message || 'Lỗi khi đồng ý yêu cầu hủy.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+        }
+    };
+
+    const handleRejectCancel = async (id) => {
+        const confirmResult = await Swal.fire({
+            title: 'Từ chối yêu cầu hủy',
+            text: 'Bạn có chắc muốn từ chối yêu cầu hủy đơn đặt bàn này? Đơn sẽ quay lại trạng thái Đã xác nhận.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Từ chối',
+            cancelButtonText: 'Thoát',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            const updatedBooking = await rejectCancelBooking(token, id);
+            setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
+            toast.success('Từ chối yêu cầu hủy thành công! Đơn đã quay lại trạng thái Đã xác nhận.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+        } catch (err) {
+            toast.error(err.message || 'Lỗi khi từ chối yêu cầu hủy.', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'light',
+            });
+        }
+    };
+
     const handleDelete = async (id) => {
         const confirmResult = await Swal.fire({
             title: 'Xác nhận xóa đơn đặt bàn',
@@ -200,6 +278,7 @@ function AdminBookingManagement() {
             case 'PENDING': return 'Chờ xác nhận';
             case 'CONFIRMED': return 'Đã xác nhận';
             case 'CANCELLED': return 'Đã hủy';
+            case 'CANCEL_REQUESTED': return 'Yêu cầu hủy';
             default: return status || 'Không xác định';
         }
     };
@@ -211,6 +290,16 @@ function AdminBookingManagement() {
             case 'outdoor': return 'Khu vườn';
             case 'terrace': return 'Sân thượng';
             default: return area || 'Không xác định';
+        }
+    };
+
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+            case 'CONFIRMED': return 'bg-green-100 text-green-800';
+            case 'CANCELLED': return 'bg-red-100 text-red-800';
+            case 'CANCEL_REQUESTED': return 'bg-orange-100 text-orange-800';
+            default: return 'bg-gray-100 text-gray-800';
         }
     };
 
@@ -266,10 +355,7 @@ function AdminBookingManagement() {
                                             {format(new Date(booking.createdAt), 'dd/MM/yyyy HH:mm')}
                                         </td>
                                         <td className="p-4 border-t border-gray-200">
-                                            <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
+                                            <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${getStatusStyle(booking.status)}`}>
                                                 {formatStatus(booking.status)}
                                             </span>
                                         </td>
@@ -296,6 +382,24 @@ function AdminBookingManagement() {
                                                         title="Hủy đơn đặt bàn"
                                                     >
                                                         <FaTimes />
+                                                    </button>
+                                                </>
+                                            )}
+                                            {booking.status === 'CANCEL_REQUESTED' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApproveCancel(booking.id)}
+                                                        className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all duration-200"
+                                                        title="Đồng ý yêu cầu hủy"
+                                                    >
+                                                        <FaCheckCircle />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRejectCancel(booking.id)}
+                                                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+                                                        title="Từ chối yêu cầu hủy"
+                                                    >
+                                                        <FaBan />
                                                     </button>
                                                 </>
                                             )}
@@ -333,10 +437,7 @@ function AdminBookingManagement() {
                                 {
                                     label: 'Trạng Thái',
                                     value: (
-                                        <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${selectedBooking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                            selectedBooking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
+                                        <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${getStatusStyle(selectedBooking.status)}`}>
                                             {formatStatus(selectedBooking.status)}
                                         </span>
                                     )
@@ -349,7 +450,23 @@ function AdminBookingManagement() {
                                 </div>
                             ))}
                         </div>
-                        <div className="flex justify-end mt-6">
+                        <div className="flex justify-end mt-6 space-x-3">
+                            {selectedBooking.status === 'CANCEL_REQUESTED' && (
+                                <>
+                                    <button
+                                        onClick={() => handleApproveCancel(selectedBooking.id)}
+                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200"
+                                    >
+                                        Đồng ý hủy
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectCancel(selectedBooking.id)}
+                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200"
+                                    >
+                                        Từ chối hủy
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={handleCloseDetailModal}
                                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"

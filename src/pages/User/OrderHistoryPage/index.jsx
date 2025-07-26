@@ -60,10 +60,15 @@ const OrderHistoryPage = () => {
                     const token = localStorage.getItem('token');
                     if (!token) throw new Error('Vui lòng đăng nhập lại');
 
-                    await cancelOrder(token, id);
-                    setOrders(orders.filter((order) => order.id !== id));
+                    // Gọi API để yêu cầu hủy đơn hàng
+                    const updatedOrder = await cancelOrder(token, id);
 
-                    toast.success('Hủy đơn hàng thành công!', {
+                    // Cập nhật danh sách orders với trạng thái mới
+                    setOrders(orders.map((order) =>
+                        order.id === id ? { ...order, orderStatus: updatedOrder.orderStatus } : order
+                    ));
+
+                    toast.success('Yêu cầu hủy đơn hàng thành công!', {
                         position: 'top-right',
                         autoClose: 3000,
                         hideProgressBar: false,
@@ -73,7 +78,7 @@ const OrderHistoryPage = () => {
                         theme: 'colored',
                     });
                 } catch (error) {
-                    const errorMessage = error.message || 'Lỗi khi hủy đơn hàng';
+                    const errorMessage = error.message || 'Lỗi khi yêu cầu hủy đơn hàng';
                     toast.error(errorMessage, {
                         position: 'top-right',
                         autoClose: 3000,
@@ -98,6 +103,7 @@ const OrderHistoryPage = () => {
         SHIPPING: 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border border-orange-200',
         DELIVERED: 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 border border-emerald-200',
         CANCELLED: 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200',
+        CANCEL_REQUESTED: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-200', // Thêm style cho CANCEL_REQUESTED
     };
 
     const statusIcons = {
@@ -106,6 +112,7 @@ const OrderHistoryPage = () => {
         SHIPPING: <FaShippingFast className="w-4 h-4" />,
         DELIVERED: <FaCheckCircle className="w-4 h-4" />,
         CANCELLED: <FaTimesCircle className="w-4 h-4" />,
+        CANCEL_REQUESTED: <FaTimes className="w-4 h-4" />,
     };
 
     const formatStatus = (status) => {
@@ -120,6 +127,8 @@ const OrderHistoryPage = () => {
                 return 'Đã giao';
             case 'CANCELLED':
                 return 'Đã hủy';
+            case 'CANCEL_REQUESTED':
+                return 'Chờ hủy';
             default:
                 return status || 'Không xác định';
         }
@@ -202,7 +211,7 @@ const OrderHistoryPage = () => {
                                                                     dateStyle: 'medium',
                                                                     timeStyle: 'short',
                                                                 })
-                                                                : 'Chưa xác định'}
+                                                                : 'Đang cập nhật thời gian giao hàng'}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -280,6 +289,9 @@ const OrderHistoryPage = () => {
                                                 <FaTimes className="group-hover/btn:rotate-90 transition-transform duration-300" />
                                                 Hủy Đơn Hàng
                                             </button>
+                                        )}
+                                        {order.orderStatus === 'CANCEL_REQUESTED' && (
+                                            <p className="text-gray-600 text-sm font-medium">Đang chờ admin phê duyệt yêu cầu hủy</p>
                                         )}
                                     </div>
                                 </div>

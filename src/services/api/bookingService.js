@@ -114,3 +114,31 @@ export const deleteBooking = async (token, bookingId) => {
         throw new Error(errorMessage);
     }
 };
+
+export const approveCancelBooking = async (token, bookingId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/approve-cancel/${bookingId}`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi đồng ý hủy đơn đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const rejectCancelBooking = async (token, bookingId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/reject-cancel/${bookingId}`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi từ chối hủy đơn đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};

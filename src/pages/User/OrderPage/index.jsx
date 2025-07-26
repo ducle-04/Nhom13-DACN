@@ -12,7 +12,6 @@ const OrderPage = () => {
     const location = useLocation();
     const orderNowItem = location.state?.orderNowItem;
     const [deliveryAddress, setDeliveryAddress] = useState('');
-    const [deliveryDate, setDeliveryDate] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -62,10 +61,6 @@ const OrderPage = () => {
             setError('Vui lòng chọn hình thức thanh toán');
             return;
         }
-        if (deliveryDate && new Date(deliveryDate) < new Date()) {
-            setError('Ngày giao hàng không được trước ngày hiện tại');
-            return;
-        }
 
         Swal.fire({
             title: 'Xác nhận đặt hàng',
@@ -92,13 +87,11 @@ const OrderPage = () => {
                             productId: orderNowItem.productId,
                             quantity: orderNowQuantity,
                             deliveryAddress,
-                            deliveryDate: deliveryDate || null,
                             paymentMethod,
                         });
                     } else {
                         await createOrder(token, {
                             deliveryAddress,
-                            deliveryDate: deliveryDate || null,
                             paymentMethod,
                         });
                         await clearCart();
@@ -116,7 +109,6 @@ const OrderPage = () => {
                     });
 
                     setDeliveryAddress('');
-                    setDeliveryDate('');
                     setPaymentMethod('');
                     if (orderNowItem) setOrderNowQuantity(1);
                 } catch (error) {
@@ -364,21 +356,6 @@ const OrderPage = () => {
 
                                 <div className="space-y-3">
                                     <label className="flex items-center text-sm font-semibold text-gray-700">
-                                        <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        Ngày giao hàng (tùy chọn)
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        value={deliveryDate}
-                                        onChange={(e) => setDeliveryDate(e.target.value)}
-                                        className="w-full p-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300 bg-white/50 backdrop-blur-sm hover:bg-white/70"
-                                    />
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center text-sm font-semibold text-gray-700">
                                         <svg className="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                         </svg>
@@ -392,10 +369,8 @@ const OrderPage = () => {
                                         <option value="" disabled>
                                             Chọn hình thức thanh toán
                                         </option>
-                                        <option value="CASH">💵 Tiền mặt</option>
-                                        <option value="CARD">💳 Thẻ tín dụng/Thẻ ghi nợ</option>
-                                        <option value="BANK_TRANSFER">🏦 Chuyển khoản ngân hàng</option>
-                                        <option value="MOBILE_PAYMENT">📱 Thanh toán qua ứng dụng di động</option>
+                                        <option value="CASH_ON_DELIVERY">Thanh toán khi nhận hàng (COD)</option>
+                                        <option value="ONLINE_PAYMENT">Thanh toán trực tuyến</option>
                                     </select>
                                 </div>
 

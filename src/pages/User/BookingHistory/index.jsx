@@ -34,6 +34,14 @@ const StatusIcon = ({ status }) => {
                     </svg>
                 </div>
             );
+        case 'CANCEL_REQUESTED':
+            return (
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full shadow-md border border-orange-200">
+                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            );
         default:
             return (
                 <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-slate-100 to-gray-100 rounded-full shadow-md border border-slate-200">
@@ -72,6 +80,14 @@ const StatusDescription = ({ status }) => {
                     color: 'text-red-800',
                     bgColor: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200/50',
                     icon: <FaTimes className="w-5 h-5 text-red-600" />
+                };
+            case 'CANCEL_REQUESTED':
+                return {
+                    title: 'Yêu cầu hủy',
+                    description: 'Yêu cầu hủy đơn đặt bàn đang chờ admin phê duyệt.',
+                    color: 'text-orange-800',
+                    bgColor: 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200/50',
+                    icon: <FaTimes className="w-5 h-5 text-orange-600" />
                 };
             default:
                 return {
@@ -274,8 +290,8 @@ function BookingHistory() {
     // Handle cancel booking
     const handleCancel = async (id) => {
         Swal.fire({
-            title: 'Xác nhận hủy đơn',
-            text: 'Bạn có chắc chắn muốn hủy đơn đặt bàn này?',
+            title: 'Xác nhận yêu cầu hủy đơn',
+            text: 'Bạn có chắc chắn muốn yêu cầu hủy đơn đặt bàn này? Yêu cầu sẽ được gửi đến admin để phê duyệt.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Đồng ý',
@@ -291,7 +307,7 @@ function BookingHistory() {
                 try {
                     const updatedBooking = await cancelBooking(token, id);
                     setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
-                    toast.success('Hủy đơn đặt bàn thành công!', {
+                    toast.success('Yêu cầu hủy đơn đã được gửi! Vui lòng chờ admin phê duyệt.', {
                         position: 'top-right',
                         autoClose: 3000,
                         hideProgressBar: false,
@@ -301,7 +317,7 @@ function BookingHistory() {
                         theme: 'light',
                     });
                 } catch (err) {
-                    toast.error(err.message || 'Lỗi khi hủy đơn đặt bàn.', {
+                    toast.error(err.message || 'Lỗi khi gửi yêu cầu hủy đơn đặt bàn.', {
                         position: 'top-right',
                         autoClose: 3000,
                         hideProgressBar: false,
@@ -343,6 +359,8 @@ function BookingHistory() {
                 return 'Đã xác nhận';
             case 'CANCELLED':
                 return 'Đã hủy';
+            case 'CANCEL_REQUESTED':
+                return 'Yêu cầu hủy';
             default:
                 return status;
         }
@@ -373,6 +391,8 @@ function BookingHistory() {
                 return 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-200 shadow-sm';
             case 'CANCELLED':
                 return 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200 shadow-sm';
+            case 'CANCEL_REQUESTED':
+                return 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 border border-orange-200 shadow-sm';
             default:
                 return 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 border border-slate-200 shadow-sm';
         }
@@ -530,11 +550,11 @@ function BookingHistory() {
                                                         >
                                                             <FaEye className="w-4 h-4" />
                                                         </button>
-                                                        {booking.status === 'PENDING' && (
+                                                        {(booking.status === 'PENDING') && (
                                                             <button
                                                                 onClick={() => handleCancel(booking.id)}
                                                                 className="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
-                                                                title="Hủy đơn"
+                                                                title="Yêu cầu hủy đơn"
                                                             >
                                                                 <FaTimes className="w-4 h-4" />
                                                             </button>
@@ -572,11 +592,11 @@ function BookingHistory() {
                                                 >
                                                     <FaEye className="w-4 h-4" />
                                                 </button>
-                                                {booking.status === 'PENDING' && (
+                                                {(booking.status === 'PENDING') && (
                                                     <button
                                                         onClick={() => handleCancel(booking.id)}
                                                         className="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
-                                                        title="Hủy đơn"
+                                                        title="Yêu cầu hủy đơn"
                                                     >
                                                         <FaTimes className="w-4 h-4" />
                                                     </button>

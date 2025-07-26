@@ -57,14 +57,56 @@ export const getOrders = async (token) => {
 
 export const cancelOrder = async (token, orderId) => {
     try {
-        const response = await axios.delete(`${API_BASE_URL}/orders/${orderId}`, {
+        const response = await axios.put(`${API_BASE_URL}/orders/${orderId}/cancel`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi yêu cầu hủy đơn hàng';
+        console.error('Lỗi khi yêu cầu hủy đơn hàng:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const approveCancelOrder = async (token, orderId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/orders/${orderId}/approve-cancel`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi đồng ý hủy đơn hàng';
+        console.error('Lỗi khi đồng ý hủy đơn hàng:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const rejectCancelOrder = async (token, orderId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/orders/${orderId}/reject-cancel`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi từ chối hủy đơn hàng';
+        console.error('Lỗi khi từ chối hủy đơn hàng:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const deleteOrder = async (token, orderId) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/orders/${orderId}/delete`, {
             headers: getAuthHeaders(token),
             timeout: 5000,
         });
         return response.data;
     } catch (error) {
-        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi hủy đơn hàng';
-        console.error('Lỗi khi hủy đơn hàng:', errorMessage);
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi xóa đơn hàng';
+        console.error('Lỗi khi xóa đơn hàng:', errorMessage);
         throw new Error(errorMessage);
     }
 };
@@ -109,6 +151,20 @@ export const updatePaymentStatus = async (token, orderId, status) => {
     } catch (error) {
         const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi cập nhật trạng thái thanh toán';
         console.error('Lỗi khi cập nhật trạng thái thanh toán:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
+export const updateDeliveryDate = async (token, orderId, deliveryDate) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/orders/${orderId}/delivery-date`, { deliveryDate }, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Lỗi khi cập nhật thời gian giao hàng';
+        console.error('Lỗi khi cập nhật thời gian giao hàng:', errorMessage);
         throw new Error(errorMessage);
     }
 };
