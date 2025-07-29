@@ -1,18 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt, FaList, FaTag, FaNewspaper, FaCalendarCheck } from 'react-icons/fa';
+import { FaTachometerAlt, FaUsers, FaBox, FaShoppingCart, FaSignOutAlt, FaList, FaTag, FaNewspaper, FaCalendarCheck, FaBars } from 'react-icons/fa';
 
 const menu = [
-    { label: 'Dashboard', icon: <FaTachometerAlt />, path: '/admin' },
-    { label: 'Quản lý người dùng', icon: <FaUsers />, path: '/admin/user' },
-    { label: 'Quản lý thực đơn', icon: <FaBox />, path: '/admin/products' },
-    { label: 'Quản lý loại sản phẩm', icon: <FaList />, path: '/admin/product-types' },
-    { label: 'Quản lý danh mục', icon: <FaTag />, path: '/admin/categories' },
-    { label: 'Quản lý đơn hàng', icon: <FaShoppingCart />, path: '/admin/orders' },
-    { label: 'Quản lý tin tức', icon: <FaNewspaper />, path: '/admin/news' },
-    { label: 'Quản lý đặt bàn', icon: <FaCalendarCheck />, path: '/admin/bookings' },
+    { label: 'Dashboard', icon: <FaTachometerAlt className="w-5 h-5" />, path: '/admin' },
+    { label: 'Quản lý người dùng', icon: <FaUsers className="w-5 h-5" />, path: '/admin/user' },
+    { label: 'Quản lý thực đơn', icon: <FaBox className="w-5 h-5" />, path: '/admin/products' },
+    { label: 'Quản lý loại sản phẩm', icon: <FaList className="w-5 h-5" />, path: '/admin/product-types' },
+    { label: 'Quản lý danh mục', icon: <FaTag className="w-5 h-5" />, path: '/admin/categories' },
+    { label: 'Quản lý đơn hàng', icon: <FaShoppingCart className="w-5 h-5" />, path: '/admin/orders' },
+    { label: 'Quản lý tin tức', icon: <FaNewspaper className="w-5 h-5" />, path: '/admin/news' },
+    { label: 'Quản lý đặt bàn', icon: <FaCalendarCheck className="w-5 h-5" />, path: '/admin/bookings' },
 ];
 
-function Sidebar({ onLogout }) {
+function Sidebar({ collapsed, setCollapsed, onLogout }) {
     const location = useLocation();
 
     const handleLogoutClick = (e) => {
@@ -21,35 +21,63 @@ function Sidebar({ onLogout }) {
     };
 
     return (
-        <aside className="admin-sidebar bg-gray-900 text-white h-screen flex flex-col p-0" style={{ width: 320 }}>
-            <div className="sidebar-logo flex items-center justify-center py-4 border-b border-gray-700">
-                <span className="logo-text font-bold text-xl text-blue-400">FoodieHub Admin</span>
+        <aside
+            className={`bg-white text-gray-800 h-screen flex flex-col shadow-lg transition-all duration-300 ${collapsed ? 'w-20' : 'min-w-[280px] w-full max-w-[300px]'
+                }`}
+        >
+            {/* Logo và nút toggle */}
+            <div className="h-16 px-6 flex items-center justify-between border-b border-gray-200">
+
+                {!collapsed && (
+                    <span className="font-bold text-2xl text-indigo-600 tracking-tight">FoodieHub Admin</span>
+                )}
+                <button
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200"
+                    aria-label={collapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
+                >
+                    <FaBars className="w-5 h-5" />
+                </button>
             </div>
-            <nav className="sidebar-menu flex-grow">
-                <ul className="flex flex-col mt-3">
+
+            {/* Menu */}
+            <nav className="flex-grow">
+                <ul className="flex flex-col mt-4">
                     {menu.map(item => (
-                        <li className="nav-item my-1" key={item.path}>
+                        <li className="my-1" key={item.path}>
                             <Link
                                 to={item.path}
-                                className={`nav-link flex items-center px-4 py-2 ${location.pathname.startsWith(item.path) ? 'bg-blue-600 text-white' : 'text-gray-300'}`}
-                                style={{ fontWeight: 500, fontSize: 16 }}
+                                className={`flex items-center px-6 py-3 mx-2 rounded-lg transition-all duration-200 ${location.pathname.startsWith(item.path)
+                                    ? 'bg-indigo-100 text-indigo-700 font-semibold'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-indigo-600'
+                                    }`}
+                                aria-current={location.pathname.startsWith(item.path) ? 'page' : undefined}
+                                aria-label={item.label}
                             >
-                                <span className="sidebar-icon mr-2" style={{ fontSize: 18 }}>{item.icon}</span>
-                                <span>{item.label}</span>
+                                <span className="mr-3">{item.icon}</span>
+                                {!collapsed && <span className="text-sm">{item.label}</span>}
                             </Link>
                         </li>
                     ))}
                 </ul>
             </nav>
-            <div className="sidebar-bottom border-t border-gray-700 py-3 px-4">
+
+            {/* Nút đăng xuất */}
+            <div className="border-t border-gray-200 h-12 px-6 flex items-center">
+
                 <button
                     onClick={handleLogoutClick}
-                    className="nav-link flex items-center text-red-400 font-bold"
+                    className={`flex items-center w-full py-2 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 hover:text-red-700 transition-all duration-200
+            ${collapsed ? 'justify-center px-0' : 'justify-start px-4'}`}
+                    aria-label="Đăng xuất"
                 >
-                    <span className="sidebar-icon mr-2"><FaSignOutAlt /></span>
-                    <span>Đăng xuất</span>
+                    <FaSignOutAlt
+                        className={`w-5 h-5 transition-all duration-200 ${collapsed ? '' : 'mr-3'}`}
+                    />
+                    {!collapsed && <span className="text-sm">Đăng xuất</span>}
                 </button>
             </div>
+
         </aside>
     );
 }

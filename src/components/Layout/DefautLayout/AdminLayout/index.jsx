@@ -33,8 +33,14 @@ function AdminLayout({ children }) {
 
     return (
         <div className="admin-layout flex min-h-screen">
-            <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} />
-            <div className="admin-main flex-grow flex flex-col" style={{ minHeight: '100vh' }}>
+            <aside
+                className={`sticky top-0 h-screen z-30 bg-white text-gray-800 shadow-lg transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'min-w-[280px] w-full max-w-[300px]'
+                    }`}
+            >
+                <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} onLogout={handleLogout} />
+            </aside>
+
+            <div className="admin-main flex-grow flex flex-col">
                 <Header onToggleSidebar={toggleSidebar} />
                 <main
                     className="flex-grow p-3"
@@ -42,7 +48,7 @@ function AdminLayout({ children }) {
                         background: '#f8f9fa',
                         overflowY: 'auto',
                         minHeight: 0,
-                        maxHeight: 'calc(100vh - 64px - 56px)'
+                        maxHeight: 'calc(100vh - 64px - 64px)', // header + footer (đồng bộ h-16 = 64px)
                     }}
                 >
                     {children}
@@ -50,6 +56,7 @@ function AdminLayout({ children }) {
                 <Footer />
             </div>
         </div>
+
     );
 }
 

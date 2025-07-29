@@ -36,6 +36,52 @@ function AdminOrderManagement() {
         fetchOrders();
     }, [token]);
 
+    const handleConfirmOrder = async (id) => {
+        const confirmResult = await Swal.fire({
+            title: 'Xác nhận đơn hàng',
+            text: 'Bạn có chắc muốn xác nhận đơn hàng này?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4F46E5',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Xác nhận',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            const updatedOrder = await updateOrderStatus(token, id, 'CONFIRMED');
+            setOrders(orders.map((order) => (order.id === id ? updatedOrder : order)));
+            toast.success('Xác nhận đơn hàng thành công!');
+        } catch (err) {
+            toast.error(err.message || 'Không thể xác nhận đơn hàng.');
+        }
+    };
+
+    const handleCancelOrder = async (id) => {
+        const confirmResult = await Swal.fire({
+            title: 'Hủy đơn hàng',
+            text: 'Bạn có chắc muốn hủy đơn hàng này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Hủy đơn hàng',
+            cancelButtonText: 'Thoát',
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        try {
+            const updatedOrder = await updateOrderStatus(token, id, 'CANCELLED');
+            setOrders(orders.map((order) => (order.id === id ? updatedOrder : order)));
+            toast.success('Hủy đơn hàng thành công!');
+        } catch (err) {
+            toast.error(err.message || 'Không thể hủy đơn hàng.');
+        }
+    };
+
     const handleUpdateStatuses = async (id) => {
         const order = orders.find((o) => o.id === id);
         const currentOrderStatus = order?.orderStatus || 'CONFIRMED';
@@ -223,7 +269,7 @@ function AdminOrderManagement() {
 
         try {
             await deleteOrder(token, id);
-            setOrders(orders.filter((order) => order.id !== id));
+            setOrders(orders.filter((order) => (order.id !== id)));
             toast.success('Xóa đơn hàng thành công!');
         } catch (err) {
             toast.error(err.message || 'Không thể xóa đơn hàng.');
@@ -340,7 +386,9 @@ function AdminOrderManagement() {
                                             </span>
                                         </td>
                                         <td className="p-4 border-t border-gray-200">
-                                            <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-800">
+                                            <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${order.paymentMethod === 'CASH_ON_DELIVERY' ? 'bg-green-100 text-green-800' :
+                                                'bg-blue-100 text-blue-800'
+                                                }`}>
                                                 {formatPaymentMethod(order.paymentMethod)}
                                             </span>
                                         </td>
@@ -356,14 +404,14 @@ function AdminOrderManagement() {
                                                 {order.orderStatus === 'PENDING' && (
                                                     <>
                                                         <button
-                                                            onClick={() => handleUpdateStatuses(order.id, { orderStatus: 'CONFIRMED' })}
+                                                            onClick={() => handleConfirmOrder(order.id)}
                                                             className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all duration-200"
                                                             title="Xác nhận đơn hàng"
                                                         >
                                                             <FaCheck />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleUpdateStatuses(order.id, { orderStatus: 'CANCELLED' })}
+                                                            onClick={() => handleCancelOrder(order.id)}
                                                             className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
                                                             title="Hủy đơn hàng"
                                                         >

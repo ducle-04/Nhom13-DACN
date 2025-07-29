@@ -178,14 +178,19 @@ function Header() {
     return (
         <>
             <header
-                className="admin-header bg-white border-b shadow-sm flex items-center justify-between px-4"
-                style={{ height: 64, zIndex: 100, position: 'sticky', top: 0 }}
+                className="admin-header h-16 sticky top-0 z-50 bg-white border-b shadow-sm flex items-center justify-between px-4"
             >
-                <div className="admin-header-left flex items-center gap-3">
-                    <span className="text-3xl font-extrabold text-indigo-900 tracking-tight" style={{ letterSpacing: 1 }}>
-                        FoodieHub <span className="text-3xl font-extrabold text-indigo-900 tracking-tight" style={{ fontWeight: 400 }}>Admin</span>
+                <div className="admin-header-left flex items-center gap-2">
+                    <img
+                        src="/images/logo0.png"
+                        alt="FoodieHub Logo"
+                        className="h-10 w-10 object-contain"
+                    />
+                    <span className="text-2xl font-semibold text-indigo-900 tracking-tight">
+                        FoodieHub
                     </span>
                 </div>
+
                 <div className="admin-header-right flex items-center gap-4">
                     <div className="search-box hidden md:block">
                         <input
