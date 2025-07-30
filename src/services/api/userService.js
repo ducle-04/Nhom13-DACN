@@ -24,6 +24,17 @@ export const updateProfile = async (token, profileData) => {
     }
 };
 
+export const updateAdminProfile = async (token, profileData) => {
+    try {
+        const response = await axios.put(`${API_URL}/admin/profile`, profileData, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.error || 'Không thể cập nhật thông tin admin.';
+    }
+};
+
 export const getAllUsers = async (token) => {
     try {
         const response = await axios.get(`${API_URL}/all`, {
