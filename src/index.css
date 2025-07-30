@@ -7,13 +7,22 @@
 
 /* Base styles */
 body {
-    @apply font-poppins bg-gray-50 text-gray-900 leading-relaxed text-base;
+    @apply font-poppins bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 leading-relaxed text-base;
     scroll-behavior: smooth;
 }
 
 /* Reset styles */
 * {
     @apply m-0 p-0 box-border;
+}
+
+/* Transition for smooth dark mode switching */
+html,
+body,
+[class*="bg-"],
+[class*="text-"],
+[class*="border-"] {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Slider styles */

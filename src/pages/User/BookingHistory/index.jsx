@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { FaTimes, FaEye, FaCalendarAlt, FaClock, FaUsers, FaMapMarkerAlt, FaUtensils } from 'react-icons/fa';
+import { FaTimes, FaEye, FaCalendarAlt, FaClock, FaUsers, FaMapMarkerAlt, FaUtensils, FaHourglassHalf, FaCheckCircle, FaBoxOpen, FaTimesCircle, FaQuestionCircle } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,45 +11,15 @@ import { getBookingHistory, getBookingDetails, cancelBooking } from '../../../se
 const StatusIcon = ({ status }) => {
     switch (status) {
         case 'PENDING':
-            return (
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full shadow-md border border-amber-200">
-                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            );
+            return <FaHourglassHalf className="w-6 h-6 text-yellow-600" />;
         case 'CONFIRMED':
-            return (
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-100 to-green-100 rounded-full shadow-md border border-emerald-200">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            );
+            return <FaCheckCircle className="w-6 h-6 text-blue-600" />;
         case 'CANCELLED':
-            return (
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-100 to-rose-100 rounded-full shadow-md border border-red-200">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            );
+            return <FaTimesCircle className="w-6 h-6 text-red-600" />;
         case 'CANCEL_REQUESTED':
-            return (
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full shadow-md border border-orange-200">
-                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            );
+            return <FaQuestionCircle className="w-6 h-6 text-orange-600" />;
         default:
-            return (
-                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-slate-100 to-gray-100 rounded-full shadow-md border border-slate-200">
-                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            );
+            return <FaQuestionCircle className="w-6 h-6 text-gray-600" />;
     }
 };
 
@@ -61,41 +31,41 @@ const StatusDescription = ({ status }) => {
                 return {
                     title: 'Chờ xác nhận',
                     description: 'Đơn đặt bàn của bạn đang chờ nhà hàng xác nhận.',
-                    color: 'text-amber-800',
-                    bgColor: 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200/50',
-                    icon: <FaClock className="w-5 h-5 text-amber-600" />
+                    color: 'text-yellow-800',
+                    bgColor: 'bg-yellow-100 border-yellow-200',
+                    icon: <FaHourglassHalf className="w-5 h-5 text-yellow-600" />
                 };
             case 'CONFIRMED':
                 return {
                     title: 'Đã xác nhận',
                     description: 'Đơn đặt bàn đã được xác nhận. Chúng tôi đang chờ đón bạn!',
-                    color: 'text-emerald-800',
-                    bgColor: 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200/50',
-                    icon: <FaUtensils className="w-5 h-5 text-emerald-600" />
+                    color: 'text-blue-800',
+                    bgColor: 'bg-blue-100 border-blue-200',
+                    icon: <FaCheckCircle className="w-5 h-5 text-blue-600" />
                 };
             case 'CANCELLED':
                 return {
                     title: 'Đã hủy',
                     description: 'Đơn đặt bàn đã được hủy.',
                     color: 'text-red-800',
-                    bgColor: 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200/50',
-                    icon: <FaTimes className="w-5 h-5 text-red-600" />
+                    bgColor: 'bg-red-100 border-red-200',
+                    icon: <FaTimesCircle className="w-5 h-5 text-red-600" />
                 };
             case 'CANCEL_REQUESTED':
                 return {
                     title: 'Yêu cầu hủy',
                     description: 'Yêu cầu hủy đơn đặt bàn đang chờ admin phê duyệt.',
                     color: 'text-orange-800',
-                    bgColor: 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200/50',
-                    icon: <FaTimes className="w-5 h-5 text-orange-600" />
+                    bgColor: 'bg-orange-100 border-orange-200',
+                    icon: <FaQuestionCircle className="w-5 h-5 text-orange-600" />
                 };
             default:
                 return {
                     title: status,
                     description: 'Trạng thái không xác định.',
-                    color: 'text-slate-800',
-                    bgColor: 'bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200/50',
-                    icon: <FaClock className="w-5 h-5 text-slate-600" />
+                    color: 'text-gray-800',
+                    bgColor: 'bg-gray-100 border-gray-200',
+                    icon: <FaQuestionCircle className="w-5 h-5 text-gray-600" />
                 };
         }
     };
@@ -103,7 +73,7 @@ const StatusDescription = ({ status }) => {
     const statusInfo = getStatusInfo();
 
     return (
-        <div className={`flex items-center space-x-3 p-4 rounded-xl border backdrop-blur-sm ${statusInfo.bgColor} shadow-sm hover:shadow-md transition-all duration-300`}>
+        <div className={`flex items-center space-x-3 p-4 rounded-lg border shadow-sm ${statusInfo.bgColor}`}>
             <StatusIcon status={status} />
             <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -112,7 +82,7 @@ const StatusDescription = ({ status }) => {
                         {statusInfo.title}
                     </h4>
                 </div>
-                <p className="text-slate-600 text-sm leading-relaxed">
+                <p className="text-gray-600 text-sm leading-relaxed">
                     {statusInfo.description}
                 </p>
             </div>
@@ -123,80 +93,80 @@ const StatusDescription = ({ status }) => {
 // Booking Detail Modal Component
 const BookingDetailModal = ({ booking, onClose }) => {
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-20">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl max-w-6xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto border border-white/20">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 pt-20">
+            <div className="bg-white rounded-xl shadow-lg max-w-5xl w-full mx-4 p-5 max-h-[90vh] overflow-y-auto border border-gray-200">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-xl shadow-md">
-                            <FaUtensils className="text-white text-xl" />
+                        <div className="p-2 bg-indigo-500 rounded-lg">
+                            <FaUtensils className="text-white text-lg" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                            <h2 className="text-xl font-bold text-indigo-900">
                                 Chi tiết đơn đặt bàn
                             </h2>
-                            <p className="text-slate-600 text-sm mt-1">Thông tin chi tiết về đơn đặt bàn</p>
+                            <p className="text-gray-600 text-sm mt-1">Thông tin chi tiết về đơn đặt bàn</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all duration-200"
+                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200"
                     >
-                        <FaTimes size={20} />
+                        <FaTimes size={18} />
                     </button>
                 </div>
 
-                {/* Main Content - Horizontal Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Left Column */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {/* Customer Information Section */}
-                        <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-5 border border-violet-100/50 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <FaUsers className="text-violet-600 text-lg" />
-                                <h3 className="text-lg font-semibold text-slate-800">Thông tin khách hàng</h3>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <FaUsers className="text-indigo-600 text-lg" />
+                                <h3 className="text-lg font-semibold text-indigo-900">Thông tin khách hàng</h3>
                             </div>
-                            <div className="space-y-3">
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Họ và tên</p>
-                                    <p className="text-lg font-semibold text-slate-900">{booking.fullName}</p>
+                            <div className="space-y-2">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Họ và tên</p>
+                                    <p className="text-sm font-semibold text-gray-900">{booking.fullName}</p>
                                 </div>
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Số điện thoại</p>
-                                    <p className="text-lg font-semibold text-slate-900">{booking.phoneNumber}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Số điện thoại</p>
+                                    <p className="text-sm font-semibold text-gray-900">{booking.phoneNumber}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Booking Information Section */}
-                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-5 border border-emerald-100/50 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <FaCalendarAlt className="text-emerald-600 text-lg" />
-                                <h3 className="text-lg font-semibold text-slate-800">Thông tin đặt bàn</h3>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <FaCalendarAlt className="text-indigo-600 text-lg" />
+                                <h3 className="text-lg font-semibold text-indigo-900">Thông tin đặt bàn</h3>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Ngày đặt</p>
-                                    <p className="text-sm font-semibold text-emerald-700">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Ngày đặt</p>
+                                    <p className="text-sm font-semibold text-indigo-700">
                                         {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                     </p>
                                 </div>
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Giờ đặt</p>
-                                    <p className="text-sm font-semibold text-emerald-700">{booking.bookingTime}</p>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Giờ đặt</p>
+                                    <p className="text-sm font-semibold text-indigo-700">{booking.bookingTime}</p>
                                 </div>
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Số khách</p>
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Số khách</p>
                                     <div className="flex items-center gap-2">
-                                        <div className="flex items-center justify-center w-6 h-6 bg-emerald-500 rounded-full">
+                                        <div className="flex items-center justify-center w-6 h-6 bg-indigo-500 rounded-full">
                                             <span className="text-white text-xs font-semibold">{booking.numberOfGuests}</span>
                                         </div>
-                                        <span className="text-sm font-semibold text-slate-900">người</span>
+                                        <span className="text-sm font-semibold text-gray-900">người</span>
                                     </div>
                                 </div>
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Khu vực</p>
-                                    <p className="text-sm font-semibold text-slate-900">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Khu vực</p>
+                                    <p className="text-sm font-semibold text-gray-900">
                                         {booking.area === 'indoor' ? 'Khu vực chính' :
                                             booking.area === 'vip' ? 'Phòng VIP' :
                                                 booking.area === 'outdoor' ? 'Khu vườn' :
@@ -208,34 +178,34 @@ const BookingDetailModal = ({ booking, onClose }) => {
                     </div>
 
                     {/* Right Column */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {/* Special Requests Section */}
-                        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-5 border border-purple-100/50 shadow-sm h-fit">
-                            <div className="flex items-center gap-2 mb-4">
-                                <FaMapMarkerAlt className="text-purple-600 text-lg" />
-                                <h3 className="text-lg font-semibold text-slate-800">Yêu cầu đặc biệt</h3>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <FaMapMarkerAlt className="text-indigo-600 text-lg" />
+                                <h3 className="text-lg font-semibold text-indigo-900">Yêu cầu đặc biệt</h3>
                             </div>
-                            <div className="bg-white/70 rounded-lg p-4 backdrop-blur-sm min-h-[120px]">
-                                <p className="text-slate-700 text-sm leading-relaxed">
+                            <div className="p-3 bg-gray-50 rounded-lg min-h-[100px]">
+                                <p className="text-gray-700 text-sm leading-relaxed">
                                     {booking.specialRequests || 'Không có yêu cầu đặc biệt'}
                                 </p>
                             </div>
                         </div>
 
                         {/* Status and System Information */}
-                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-5 border border-emerald-100/50 shadow-sm">
-                            <div className="flex items-center gap-2 mb-4">
-                                <FaUtensils className="text-emerald-600 text-lg" />
-                                <h3 className="text-lg font-semibold text-slate-800">Thông tin hệ thống</h3>
+                        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <FaUtensils className="text-indigo-600 text-lg" />
+                                <h3 className="text-lg font-semibold text-indigo-900">Thông tin hệ thống</h3>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div>
-                                    <p className="text-xs font-medium text-slate-500 mb-2">Trạng thái đơn đặt bàn</p>
+                                    <p className="text-xs font-medium text-gray-500 mb-2">Trạng thái đơn đặt bàn</p>
                                     <StatusDescription status={booking.status} />
                                 </div>
-                                <div className="bg-white/70 rounded-lg p-3 backdrop-blur-sm">
-                                    <p className="text-xs font-medium text-slate-500 mb-1">Thời gian tạo</p>
-                                    <p className="text-sm font-semibold text-slate-900">
+                                <div>
+                                    <p className="text-xs font-medium text-gray-500 mb-1">Thời gian tạo</p>
+                                    <p className="text-sm font-semibold text-gray-900">
                                         {format(new Date(booking.createdAt), 'dd/MM/yyyy HH:mm')}
                                     </p>
                                 </div>
@@ -245,10 +215,10 @@ const BookingDetailModal = ({ booking, onClose }) => {
                 </div>
 
                 {/* Footer Actions */}
-                <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <div className="mt-4 flex justify-end gap-3 pt-3 border-t border-gray-200">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-gradient-to-r from-slate-200 to-slate-300 text-slate-700 font-semibold rounded-xl hover:from-slate-300 hover:to-slate-400 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                        className="px-5 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 font-medium text-sm"
                     >
                         Đóng
                     </button>
@@ -263,6 +233,8 @@ function BookingHistory() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const bookingsPerPage = 7; // Changed from 10 to 7
 
     // Fetch booking history on component mount
     useEffect(() => {
@@ -298,8 +270,8 @@ function BookingHistory() {
             cancelButtonText: 'Hủy bỏ',
             buttonsStyling: false,
             customClass: {
-                confirmButton: 'px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105',
-                cancelButton: 'px-6 py-3 bg-gradient-to-r from-slate-200 to-slate-300 text-slate-700 font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105',
+                confirmButton: 'px-5 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 font-medium text-sm',
+                cancelButton: 'px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-medium text-sm',
             },
         }).then(async (result) => {
             if (result.isConfirmed) {
@@ -386,15 +358,15 @@ function BookingHistory() {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'PENDING':
-                return 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-200 shadow-sm';
+                return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'CONFIRMED':
-                return 'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border border-emerald-200 shadow-sm';
+                return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'CANCELLED':
-                return 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border border-red-200 shadow-sm';
+                return 'bg-red-100 text-red-800 border-red-200';
             case 'CANCEL_REQUESTED':
-                return 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 border border-orange-200 shadow-sm';
+                return 'bg-orange-100 text-orange-800 border-orange-200';
             default:
-                return 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 border border-slate-200 shadow-sm';
+                return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
@@ -402,72 +374,71 @@ function BookingHistory() {
     const getAreaBadge = (area) => {
         switch (area) {
             case 'indoor':
-                return 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200';
+                return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'vip':
-                return 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-200';
+                return 'bg-purple-100 text-purple-800 border-purple-200';
             case 'outdoor':
-                return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200';
+                return 'bg-green-100 text-green-800 border-green-200';
             case 'terrace':
-                return 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 border border-orange-200';
+                return 'bg-orange-100 text-orange-800 border-orange-200';
             default:
-                return 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-700 border border-slate-200';
+                return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     };
 
-    return (
-        <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-            <ToastContainer />
-            {/* Background decorations */}
-            <div className="absolute top-0 left-0 w-80 h-80 bg-gradient-to-br from-violet-300/30 to-blue-300/30 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-indigo-300/30 to-purple-300/30 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+    // Pagination logic
+    const indexOfLastBooking = currentPage * bookingsPerPage;
+    const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+    const currentBookings = bookings.slice(indexOfFirstBooking, indexOfLastBooking);
+    const totalPages = Math.ceil(bookings.length / bookingsPerPage);
 
-            <div className="max-w-7xl mx-auto relative z-10">
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+            <ToastContainer />
+            <div className="max-w-5xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl mb-4 shadow-lg">
-                        <FaUtensils className="text-white text-2xl" />
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-lg mb-3">
+                        <FaUtensils className="text-white text-xl" />
                     </div>
-                    <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-slate-900 to-indigo-800 bg-clip-text text-transparent mb-2">
-                        Lịch Sử Đặt Bàn
-                    </h1>
-                    <p className="text-lg text-slate-700 font-medium max-w-xl mx-auto">
-                        Theo dõi và quản lý các đơn đặt bàn của bạn tại FoodieHub Restaurant
-                    </p>
-                    <div className="mt-4 w-24 h-1 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full mx-auto"></div>
+                    <h1 className="text-3xl font-bold text-indigo-900">Lịch Sử Đặt Bàn</h1>
+                    <p className="text-gray-600 text-sm mt-2">Theo dõi và quản lý các đơn đặt bàn của bạn tại FoodieHub Restaurant</p>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                    <div className="mb-8 p-4 bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200 rounded-xl flex items-center space-x-3 shadow-md animate-pulse">
-                        <FaTimes className="w-5 h-5 text-red-600" />
+                    <div className="mb-6 p-4 bg-red-100 text-red-800 border border-red-200 rounded-lg flex items-center space-x-2">
+                        <FaTimes className="w-4 h-4 text-red-600" />
                         <p className="text-sm font-medium">{error}</p>
                     </div>
                 )}
 
                 {/* Content Area */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 overflow-hidden">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-16">
-                            <div className="relative mb-6">
-                                <div className="animate-spin rounded-full h-12 w-12 border-4 border-violet-200"></div>
-                                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-violet-600 absolute top-0 left-0"></div>
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <div className="relative mb-4">
+                                <div className="animate-spin rounded-full h-10 w-10 border-4 border-indigo-200"></div>
+                                <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-indigo-600 absolute top-0 left-0"></div>
                             </div>
-                            <p className="text-slate-600 text-lg font-medium">Đang tải lịch sử đặt bàn...</p>
+                            <p className="text-gray-600 text-sm font-medium">Đang tải lịch sử đặt bàn...</p>
                         </div>
                     ) : bookings.length === 0 ? (
-                        <div className="text-center py-16">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl mb-4 shadow-lg">
-                                <FaUtensils className="text-white text-2xl" />
+                        <div className="text-center py-12">
+                            <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-500 rounded-lg mb-3">
+                                <FaUtensils className="text-white text-xl" />
                             </div>
-                            <h3 className="text-2xl font-semibold text-slate-800 mb-3">Chưa có đơn đặt bàn</h3>
-                            <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto">
-                                Bạn chưa có lịch sử đặt bàn. Hãy bắt đầu bằng cách đặt bàn ngay hôm nay!
-                            </p>
+                            <h3 className="text-lg font-semibold text-indigo-900 mb-2">Chưa có đơn đặt bàn</h3>
+                            <p className="text-gray-600 text-sm mb-4">Bạn chưa có lịch sử đặt bàn. Hãy bắt đầu bằng cách đặt bàn ngay hôm nay!</p>
                             <Link
                                 to="/booking"
-                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                                className="inline-flex items-center px-5 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 font-medium text-sm"
                             >
-                                <FaUtensils className="w-5 h-5 mr-2" />
+                                <FaUtensils className="w-4 h-4 mr-2" />
                                 Đặt bàn ngay
                             </Link>
                         </div>
@@ -477,83 +448,83 @@ function BookingHistory() {
                             <div className="hidden lg:block overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="bg-gradient-to-r from-violet-100 to-indigo-100 border-b border-violet-200/50">
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Khách hàng</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Thời gian</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Số khách</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Khu vực</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Yêu cầu</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Trạng thái</th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Thao tác</th>
+                                        <tr className="bg-indigo-50 text-indigo-900 border-b border-gray-200">
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Khách hàng</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Thời gian</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Số khách</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Khu vực</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Yêu cầu</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Trạng thái</th>
+                                            <th className="px-5 py-3 text-left text-xs font-semibold uppercase">Thao tác</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {bookings.map((booking, index) => (
-                                            <tr key={booking.id} className={`hover:bg-violet-50/50 transition-all duration-300 ${index % 2 === 0 ? 'bg-white/80' : 'bg-slate-50/50'}`}>
-                                                <td className="px-6 py-4">
+                                    <tbody className="divide-y divide-gray-200">
+                                        {currentBookings.map((booking) => (
+                                            <tr key={booking.id} className="hover:bg-gray-50 transition-all duration-200">
+                                                <td className="px-5 py-4">
                                                     <div className="flex items-center space-x-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center shadow-md">
-                                                            <span className="text-white font-semibold text-sm">
+                                                        <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-xs font-semibold">
                                                                 {booking.fullName.charAt(0).toUpperCase()}
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <p className="font-semibold text-slate-900 text-sm">{booking.fullName}</p>
-                                                            <p className="text-slate-600 text-xs">{booking.phoneNumber}</p>
+                                                            <p className="font-semibold text-gray-900 text-sm">{booking.fullName}</p>
+                                                            <p className="text-gray-600 text-xs">{booking.phoneNumber}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-4">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
-                                                            <FaCalendarAlt className="text-violet-600 w-4 h-4" />
-                                                            <p className="font-semibold text-slate-900 text-sm">
+                                                            <FaCalendarAlt className="text-indigo-600 w-4 h-4" />
+                                                            <p className="font-semibold text-gray-900 text-sm">
                                                                 {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <FaClock className="text-violet-600 w-4 h-4" />
-                                                            <p className="font-semibold text-violet-700 text-sm">{booking.bookingTime}</p>
+                                                            <FaClock className="text-indigo-600 w-4 h-4" />
+                                                            <p className="font-semibold text-indigo-700 text-sm">{booking.bookingTime}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-4">
                                                     <div className="flex items-center space-x-2">
-                                                        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full shadow-md">
-                                                            <FaUsers className="text-white text-sm" />
+                                                        <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                            <FaUsers className="text-white text-xs" />
                                                         </div>
-                                                        <span className="font-semibold text-slate-900 text-sm">{booking.numberOfGuests} người</span>
+                                                        <span className="font-semibold text-gray-900 text-sm">{booking.numberOfGuests} người</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getAreaBadge(booking.area)}`}>
-                                                        <FaMapMarkerAlt className="mr-1 w-4 h-4" />
+                                                <td className="px-5 py-4">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${getAreaBadge(booking.area)}`}>
+                                                        <FaMapMarkerAlt className="mr-1 w-3 h-3" />
                                                         {formatArea(booking.area)}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-xs text-slate-600 truncate bg-slate-100 px-2 py-1 rounded-lg max-w-xs" title={booking.specialRequests}>
+                                                <td className="px-5 py-4">
+                                                    <p className="text-xs text-gray-600 truncate bg-gray-100 px-2 py-1 rounded-lg max-w-xs" title={booking.specialRequests}>
                                                         {booking.specialRequests || 'Không có'}
                                                     </p>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusBadge(booking.status)}`}>
+                                                <td className="px-5 py-4">
+                                                    <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium ${getStatusBadge(booking.status)}`}>
                                                         {formatStatus(booking.status)}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-5 py-4">
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => handleViewDetails(booking.id)}
-                                                            className="p-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-lg hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                                                            className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200"
                                                             title="Xem chi tiết"
                                                         >
                                                             <FaEye className="w-4 h-4" />
                                                         </button>
-                                                        {(booking.status === 'PENDING') && (
+                                                        {booking.status === 'PENDING' && (
                                                             <button
                                                                 onClick={() => handleCancel(booking.id)}
-                                                                className="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                                                                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200"
                                                                 title="Yêu cầu hủy đơn"
                                                             >
                                                                 <FaTimes className="w-4 h-4" />
@@ -569,33 +540,33 @@ function BookingHistory() {
 
                             {/* Mobile Card View */}
                             <div className="lg:hidden space-y-4 p-4">
-                                {bookings.map((booking) => (
-                                    <div key={booking.id} className="group bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-white/50 p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                {currentBookings.map((booking) => (
+                                    <div key={booking.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                                         {/* Card Header */}
-                                        <div className="flex justify-between items-start mb-4">
+                                        <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center space-x-3 flex-1">
-                                                <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center shadow-md">
-                                                    <span className="text-white font-semibold text-sm">
+                                                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                    <span className="text-white text-xs font-semibold">
                                                         {booking.fullName.charAt(0).toUpperCase()}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-semibold text-slate-900 text-sm">{booking.fullName}</h3>
-                                                    <p className="text-violet-600 text-xs font-medium">{booking.phoneNumber}</p>
+                                                    <h3 className="font-semibold text-gray-900 text-sm">{booking.fullName}</h3>
+                                                    <p className="text-indigo-600 text-xs font-medium">{booking.phoneNumber}</p>
                                                 </div>
                                             </div>
                                             <div className="flex space-x-2">
                                                 <button
                                                     onClick={() => handleViewDetails(booking.id)}
-                                                    className="p-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-lg hover:from-violet-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                                                    className="p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200"
                                                     title="Xem chi tiết"
                                                 >
                                                     <FaEye className="w-4 h-4" />
                                                 </button>
-                                                {(booking.status === 'PENDING') && (
+                                                {booking.status === 'PENDING' && (
                                                     <button
                                                         onClick={() => handleCancel(booking.id)}
-                                                        className="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                                                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200"
                                                         title="Yêu cầu hủy đơn"
                                                     >
                                                         <FaTimes className="w-4 h-4" />
@@ -605,32 +576,32 @@ function BookingHistory() {
                                         </div>
 
                                         {/* Status Section */}
-                                        <div className="mb-4">
+                                        <div className="mb-3">
                                             <StatusDescription status={booking.status} />
                                         </div>
 
                                         {/* Booking Details Grid */}
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-3 border border-emerald-100/50">
+                                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <FaCalendarAlt className="text-emerald-600 w-4 h-4" />
-                                                    <p className="text-xs font-medium text-slate-500 uppercase">Ngày & Giờ</p>
+                                                    <FaCalendarAlt className="text-indigo-600 w-4 h-4" />
+                                                    <p className="text-xs font-medium text-gray-500 uppercase">Ngày & Giờ</p>
                                                 </div>
-                                                <p className="font-semibold text-slate-900 text-sm">
+                                                <p className="font-semibold text-gray-900 text-sm">
                                                     {format(new Date(booking.bookingDate), 'dd/MM/yyyy')}
                                                 </p>
-                                                <p className="text-emerald-700 text-sm font-medium">{booking.bookingTime}</p>
+                                                <p className="text-indigo-700 text-sm font-medium">{booking.bookingTime}</p>
                                             </div>
-                                            <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-lg p-3 border border-violet-100/50">
+                                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <FaUsers className="text-violet-600 w-4 h-4" />
-                                                    <p className="text-xs font-medium text-slate-500 uppercase">Chi tiết</p>
+                                                    <FaUsers className="text-indigo-600 w-4 h-4" />
+                                                    <p className="text-xs font-medium text-gray-500 uppercase">Chi tiết</p>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full shadow-md">
-                                                        <span className="text-white font-semibold text-sm">{booking.numberOfGuests}</span>
+                                                    <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white text-xs font-semibold">{booking.numberOfGuests}</span>
                                                     </div>
-                                                    <span className="text-slate-900 text-sm font-medium">người</span>
+                                                    <span className="text-gray-900 text-sm font-medium">người</span>
                                                 </div>
                                                 <span className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium mt-2 ${getAreaBadge(booking.area)}`}>
                                                     <FaMapMarkerAlt className="mr-1 w-3 h-3" />
@@ -641,21 +612,50 @@ function BookingHistory() {
 
                                         {/* Special Requests */}
                                         {booking.specialRequests && (
-                                            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-3 mt-3 border border-purple-100/50">
-                                                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Yêu cầu đặc biệt</p>
-                                                <p className="text-slate-700 text-xs leading-relaxed">{booking.specialRequests}</p>
+                                            <div className="bg-gray-50 rounded-lg p-3 mt-3 border border-gray-200">
+                                                <p className="text-xs font-medium text-gray-500 uppercase mb-1">Yêu cầu đặc biệt</p>
+                                                <p className="text-gray-700 text-xs leading-relaxed">{booking.specialRequests}</p>
                                             </div>
                                         )}
 
                                         {/* Created timestamp */}
                                         <div className="text-right mt-3">
-                                            <p className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full inline-block">
+                                            <p className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full inline-block">
                                                 Đặt lúc: {format(new Date(booking.createdAt), 'dd/MM/yyyy HH:mm')}
                                             </p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Pagination */}
+                            {bookings.length > bookingsPerPage && (
+                                <div className="flex justify-center items-center gap-2 py-4">
+                                    <button
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                                    >
+                                        Previous
+                                    </button>
+                                    {[...Array(totalPages).keys()].map((page) => (
+                                        <button
+                                            key={page + 1}
+                                            onClick={() => handlePageChange(page + 1)}
+                                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                        >
+                                            {page + 1}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
@@ -669,19 +669,19 @@ function BookingHistory() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                     <Link
                         to="/booking"
-                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                        className="inline-flex items-center px-5 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 font-medium text-sm"
                     >
-                        <FaUtensils className="w-5 h-5 mr-2" />
+                        <FaUtensils className="w-4 h-4 mr-2" />
                         Đặt Bàn Mới
                     </Link>
                     <Link
                         to="/"
-                        className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-slate-200 to-slate-300 text-slate-700 font-semibold rounded-xl hover:from-slate-300 hover:to-slate-400 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                        className="inline-flex items-center px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-medium text-sm"
                     >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         Quay Lại Trang Chủ

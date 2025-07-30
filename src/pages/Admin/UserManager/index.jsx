@@ -13,6 +13,8 @@ function UserManager() {
     const [addingUser, setAddingUser] = useState(false);
     const [createLoading, setCreateLoading] = useState(false);
     const [addForm, setAddForm] = useState({ username: '', email: '', password: '', enabled: true, fullname: '', address: '', phoneNumber: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 7; // 7 records per page
 
     const token = localStorage.getItem('token');
 
@@ -109,6 +111,10 @@ function UserManager() {
                 theme: 'light',
             });
             setError(null);
+            // Adjust current page if necessary
+            if (currentUsers.length === 1 && currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+            }
         } catch (err) {
             setError(err.message || 'Không thể xóa người dùng.');
             toast.error(err.message || 'Không thể xóa người dùng.', {
@@ -208,6 +214,7 @@ function UserManager() {
                 theme: 'light',
             });
             setError(null);
+            setCurrentPage(1); // Reset to first page after adding user
         } catch (err) {
             setError(err.message || 'Không thể tạo người dùng.');
             toast.error(err.message || 'Không thể tạo người dùng.', {
@@ -222,6 +229,16 @@ function UserManager() {
         } finally {
             setCreateLoading(false);
         }
+    };
+
+    // Pagination logic
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(users.length / usersPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
     };
 
     if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
@@ -244,6 +261,7 @@ function UserManager() {
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-indigo-100 text-indigo-900">
+                                <th className="p-4 text-left font-semibold">#</th>
                                 <th className="p-4 text-left font-semibold">Tên Đăng Nhập</th>
                                 <th className="p-4 text-left font-semibold">Họ và Tên</th>
                                 <th className="p-4 text-left font-semibold">Email</th>
@@ -254,13 +272,14 @@ function UserManager() {
                             </tr>
                         </thead>
                         <tbody>
-                            {users.length === 0 ? (
+                            {currentUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="text-center text-gray-500 py-6">Không có người dùng nào</td>
+                                    <td colSpan="8" className="text-center text-gray-500 py-6">Không có người dùng nào</td>
                                 </tr>
                             ) : (
-                                users.map((user) => (
+                                currentUsers.map((user, idx) => (
                                     <tr key={user.id} className="hover:bg-gray-50 transition-all duration-200">
+                                        <td className="p-4 border-t border-gray-200">{idx + 1 + (currentPage - 1) * usersPerPage}</td>
                                         <td className="p-4 border-t border-gray-200">{user.username}</td>
                                         <td className="p-4 border-t border-gray-200">{user.fullname || 'N/A'}</td>
                                         <td className="p-4 border-t border-gray-200">{user.email || 'N/A'}</td>
@@ -296,6 +315,34 @@ function UserManager() {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination */}
+                {users.length > usersPerPage && (
+                    <div className="flex justify-center items-center gap-2 py-4">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Previous
+                        </button>
+                        {[...Array(totalPages).keys()].map((page) => (
+                            <button
+                                key={page + 1}
+                                onClick={() => handlePageChange(page + 1)}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                {page + 1}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Modal xem chi tiết */}

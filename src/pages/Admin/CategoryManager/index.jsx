@@ -73,7 +73,7 @@ function CategoryManager() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || form.name.trim() === '') {
-            setError('Tên danh mục không được để trống.');
+            setError('Tên danh mục món ăn không được để trống.');
             return;
         }
 
@@ -189,7 +189,7 @@ function CategoryManager() {
             <ToastContainer />
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Danh Mục</h2>
+                    <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Danh Mục Món Ăn</h2>
                     <button
                         onClick={() => handleOpenModal('add')}
                         className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"

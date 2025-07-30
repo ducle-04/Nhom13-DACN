@@ -12,6 +12,8 @@ function AdminBookingManagement() {
     const [error, setError] = useState('');
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const bookingsPerPage = 7; // 7 records per page
 
     const token = localStorage.getItem('token');
 
@@ -101,7 +103,7 @@ function AdminBookingManagement() {
         try {
             const updatedBooking = await cancelBookingByAdmin(token, id);
             setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
-            toast.success('Hủy đơn đặt bàn thành thử công!', {
+            toast.success('Hủy đơn đặt bàn thành công!', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -227,6 +229,10 @@ function AdminBookingManagement() {
                 draggable: true,
                 theme: 'light',
             });
+            // Adjust current page if necessary
+            if (currentBookings.length === 1 && currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+            }
         } catch (err) {
             toast.error(err.message || 'Lỗi khi xóa đơn đặt bàn.', {
                 position: 'top-right',
@@ -245,15 +251,6 @@ function AdminBookingManagement() {
             const booking = await getBookingDetails(token, id);
             setSelectedBooking(booking);
             setShowDetailModal(true);
-            toast.success('Tải chi tiết đơn đặt bàn thành công!', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: 'light',
-            });
         } catch (err) {
             toast.error(err.message || 'Lỗi khi xem chi tiết đơn đặt bàn.', {
                 position: 'top-right',
@@ -302,6 +299,16 @@ function AdminBookingManagement() {
         }
     };
 
+    // Pagination logic
+    const indexOfLastBooking = currentPage * bookingsPerPage;
+    const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+    const currentBookings = bookings.slice(indexOfFirstBooking, indexOfLastBooking);
+    const totalPages = Math.ceil(bookings.length / bookingsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
     if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
@@ -331,16 +338,16 @@ function AdminBookingManagement() {
                             </tr>
                         </thead>
                         <tbody>
-                            {bookings.length === 0 ? (
+                            {currentBookings.length === 0 ? (
                                 <tr>
                                     <td colSpan="11" className="text-center text-gray-500 py-6">
                                         Không có đơn đặt bàn nào.
                                     </td>
                                 </tr>
                             ) : (
-                                bookings.map((booking, index) => (
+                                currentBookings.map((booking, idx) => (
                                     <tr key={booking.id} className="hover:bg-gray-50 transition-all duration-200">
-                                        <td className="p-4 border-t border-gray-200">{index + 1}</td>
+                                        <td className="p-4 border-t border-gray-200">{idx + 1 + (currentPage - 1) * bookingsPerPage}</td>
                                         <td className="p-4 border-t border-gray-200">{booking.fullName}</td>
                                         <td className="p-4 border-t border-gray-200">{booking.phoneNumber}</td>
                                         <td className="p-4 border-t border-gray-200">
@@ -416,6 +423,34 @@ function AdminBookingManagement() {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination */}
+                {bookings.length > bookingsPerPage && (
+                    <div className="flex justify-center items-center gap-2 py-4">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Previous
+                        </button>
+                        {[...Array(totalPages).keys()].map((page) => (
+                            <button
+                                key={page + 1}
+                                onClick={() => handlePageChange(page + 1)}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                {page + 1}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
             {showDetailModal && selectedBooking && (

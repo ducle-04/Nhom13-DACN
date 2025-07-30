@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { FaCheck, FaEye, FaTimes, FaCheckCircle, FaBan, FaTrash, FaEdit } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import { getAdminOrders, updateOrderStatus, updatePaymentStatus, cancelOrder, approveCancelOrder, rejectCancelOrder, deleteOrder, updateDeliveryDate } from '../../../services/api/orderService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,10 +11,10 @@ function AdminOrderManagement() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const ordersPerPage = 7; // 7 records per page
     const token = localStorage.getItem('token');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -277,13 +278,7 @@ function AdminOrderManagement() {
     };
 
     const handleViewDetails = (order) => {
-        setSelectedOrder(order);
-        setShowDetailModal(true);
-    };
-
-    const handleCloseDetailModal = () => {
-        setShowDetailModal(false);
-        setSelectedOrder(null);
+        navigate(`/admin/orders/${order.id}`, { state: { order } });
     };
 
     const formatStatus = (status) => {
@@ -316,6 +311,16 @@ function AdminOrderManagement() {
         }
     };
 
+    // Pagination logic
+    const indexOfLastOrder = currentPage * ordersPerPage;
+    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+    const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+    const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
     if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
@@ -344,16 +349,16 @@ function AdminOrderManagement() {
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.length === 0 ? (
+                            {currentOrders.length === 0 ? (
                                 <tr>
                                     <td colSpan="10" className="text-center text-gray-500 py-6">
                                         Không có đơn hàng nào.
                                     </td>
                                 </tr>
                             ) : (
-                                orders.map((order, index) => (
+                                currentOrders.map((order, index) => (
                                     <tr key={order.id} className="hover:bg-gray-50 transition-all duration-200">
-                                        <td className="p-4 border-t border-gray-200">{index + 1}</td>
+                                        <td className="p-4 border-t border-gray-200">{index + 1 + (currentPage - 1) * ordersPerPage}</td>
                                         <td className="p-4 border-t border-gray-200">{order.fullname}</td>
                                         <td className="p-4 border-t border-gray-200">{order.deliveryAddress}</td>
                                         <td className="p-4 border-t border-gray-200">
@@ -474,97 +479,36 @@ function AdminOrderManagement() {
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            {showDetailModal && selectedOrder && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-8 w-full max-w-4xl shadow-2xl backdrop-blur-lg">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Chi Tiết Đơn Hàng</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[
-                                { label: 'ID', value: selectedOrder.id },
-                                { label: 'Họ Tên', value: selectedOrder.fullname },
-                                { label: 'Email', value: selectedOrder.email },
-                                { label: 'Số Điện Thoại', value: selectedOrder.phoneNumber || 'Không có' },
-                                { label: 'Địa Chỉ Giao Hàng', value: selectedOrder.deliveryAddress },
-                                {
-                                    label: 'Ngày Đặt Hàng',
-                                    value: selectedOrder.orderDate ? format(new Date(selectedOrder.orderDate), 'dd/MM/yyyy HH:mm') : 'Không xác định'
-                                },
-                                {
-                                    label: 'Ngày Giao Hàng',
-                                    value: selectedOrder.deliveryDate ? format(new Date(selectedOrder.deliveryDate), 'dd/MM/yyyy HH:mm') : 'Chưa xác định'
-                                },
-                                {
-                                    label: 'Hình Thức Thanh Toán',
-                                    value: (
-                                        <span className="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-gray-100 text-gray-800">
-                                            {formatPaymentMethod(selectedOrder.paymentMethod)}
-                                        </span>
-                                    )
-                                },
-                                {
-                                    label: 'Trạng Thái Thanh Toán',
-                                    value: (
-                                        <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${selectedOrder.paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                            selectedOrder.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
-                                                selectedOrder.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                            }`}>
-                                            {formatPaymentStatus(selectedOrder.paymentStatus)}
-                                        </span>
-                                    )
-                                },
-                                {
-                                    label: 'Trạng Thái Đơn Hàng',
-                                    value: (
-                                        <span className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${selectedOrder.orderStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                            selectedOrder.orderStatus === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                                                selectedOrder.orderStatus === 'SHIPPING' ? 'bg-orange-100 text-orange-800' :
-                                                    selectedOrder.orderStatus === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                                                        selectedOrder.orderStatus === 'CANCEL_REQUESTED' ? 'bg-purple-100 text-purple-800' :
-                                                            'bg-red-100 text-red-800'
-                                            }`}>
-                                            {formatStatus(selectedOrder.orderStatus)}
-                                        </span>
-                                    )
-                                },
-                                {
-                                    label: 'Tổng Tiền',
-                                    value: `${(selectedOrder.totalAmount || 0).toLocaleString('vi-VN')} VNĐ`
-                                }
-                            ].map((item, index) => (
-                                <div key={index}>
-                                    <label className="block text-sm font-medium text-gray-700">{item.label}:</label>
-                                    <p className="mt-1 text-sm text-gray-600">{item.value}</p>
-                                </div>
-                            ))}
-                            <div className="lg:col-span-4">
-                                <label className="block text-sm font-medium text-gray-700">Mặt Hàng:</label>
-                                {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 ? (
-                                    <ul className="mt-2 list-disc pl-5 text-sm text-gray-600">
-                                        {selectedOrder.orderItems.map((item, index) => (
-                                            <li key={item.id || `item-${index}`}>
-                                                {item.productName || 'Không xác định'} - Số lượng: {item.quantity || 0} - Giá: {(item.unitPrice || 0).toLocaleString('vi-VN')} VNĐ - Tổng: {(item.subtotal || 0).toLocaleString('vi-VN')} VNĐ
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="mt-1 text-sm text-gray-600">Không có mặt hàng</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex justify-end mt-6">
+                {/* Pagination */}
+                {orders.length > ordersPerPage && (
+                    <div className="flex justify-center items-center gap-2 py-4">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Previous
+                        </button>
+                        {[...Array(totalPages).keys()].map((page) => (
                             <button
-                                onClick={handleCloseDetailModal}
-                                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200"
+                                key={page + 1}
+                                onClick={() => handlePageChange(page + 1)}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             >
-                                Đóng
+                                {page + 1}
                             </button>
-                        </div>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Next
+                        </button>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

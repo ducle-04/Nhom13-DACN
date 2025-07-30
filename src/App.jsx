@@ -1,8 +1,9 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { PublicPage } from './router';
+import { PublicPage, PrivatePage } from './router';
 import ScrollToTop from './components/OtherComponent/ScrollToTop';
 import { CartProvider } from '../src/Context/CartContext';
 import Cart from '../src/components/Layout/DefautLayout/UserLayout/Cart';
+import PrivateRoute from './components/PrivateRoute';
 import { useState } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
@@ -35,6 +36,7 @@ function App() {
 
         {/* Điều hướng các route */}
         <Routes>
+          {/* Route công khai */}
           {PublicPage.map((page, index) => {
             const Page = page.component;
             const Layout = page.layout;
@@ -55,6 +57,15 @@ function App() {
               />
             );
           })}
+
+          {/* Route riêng tư (ADMIN) */}
+          {PrivatePage.map((page, index) => (
+            <Route
+              key={index}
+              path={page.path}
+              element={<PrivateRoute component={page.component} layout={page.layout} />}
+            />
+          ))}
         </Routes>
       </div>
     </CartProvider>

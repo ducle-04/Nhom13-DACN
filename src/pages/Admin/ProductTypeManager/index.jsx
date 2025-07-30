@@ -73,14 +73,14 @@ function ProductTypeManager() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || form.name.trim() === '') {
-            setError('Tên loại sản phẩm không được để trống.');
+            setError('Tên loại món ăn không được để trống.');
             return;
         }
 
         // Xác nhận lưu với SweetAlert2
         const confirmResult = await Swal.fire({
-            title: modalType === 'add' ? 'Xác nhận thêm loại sản phẩm' : 'Xác nhận chỉnh sửa loại sản phẩm',
-            text: `Bạn có chắc chắn muốn ${modalType === 'add' ? 'thêm' : 'lưu thay đổi cho'} loại sản phẩm này?`,
+            title: modalType === 'add' ? 'Xác nhận thêm loại món ăn' : 'Xác nhận chỉnh sửa loại món ăn',
+            text: `Bạn có chắc chắn muốn ${modalType === 'add' ? 'thêm' : 'lưu thay đổi cho'} loại món ăn này?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#4F46E5', // Indigo-600
@@ -95,7 +95,7 @@ function ProductTypeManager() {
             if (modalType === 'add') {
                 const newProductType = await createProductType(token, { name: form.name });
                 setProductTypes([...productTypes, newProductType]);
-                toast.success('Thêm loại sản phẩm thành công!', {
+                toast.success('Thêm loại món ăn thành công!', {
                     position: 'top-right',
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -107,7 +107,7 @@ function ProductTypeManager() {
             } else if (modalType === 'edit' && selectedId) {
                 const updatedProductType = await updateProductType(token, selectedId, { name: form.name });
                 setProductTypes(productTypes.map(pt => (pt.id === selectedId ? updatedProductType : pt)));
-                toast.success('Cập nhật loại sản phẩm thành công!', {
+                toast.success('Cập nhật loại món ăn thành công!', {
                     position: 'top-right',
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -119,8 +119,8 @@ function ProductTypeManager() {
             }
             handleCloseModal();
         } catch (err) {
-            setError(err.message || 'Không thể lưu loại sản phẩm.');
-            toast.error(err.message || 'Không thể lưu loại sản phẩm.', {
+            setError(err.message || 'Không thể lưu loại món ăn.');
+            toast.error(err.message || 'Không thể lưu loại món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -141,8 +141,8 @@ function ProductTypeManager() {
         }
 
         const confirmResult = await Swal.fire({
-            title: 'Xác nhận xóa loại sản phẩm',
-            text: 'Bạn có chắc chắn muốn xóa loại sản phẩm này?',
+            title: 'Xác nhận xóa loại món ăn',
+            text: 'Bạn có chắc chắn muốn xóa loại món ăn này?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444', // Red-500
@@ -156,7 +156,7 @@ function ProductTypeManager() {
         try {
             await deleteProductType(token, id);
             setProductTypes(productTypes.filter(pt => pt.id !== id));
-            toast.success('Xóa loại sản phẩm thành công!', {
+            toast.success('Xóa loại món ăn thành công!', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -167,8 +167,8 @@ function ProductTypeManager() {
             });
             setError(null);
         } catch (err) {
-            setError(err.message || 'Không thể xóa loại sản phẩm.');
-            toast.error(err.message || 'Không thể xóa loại sản phẩm.', {
+            setError(err.message || 'Không thể xóa loại món ăn.');
+            toast.error(err.message || 'Không thể xóa loại món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -189,12 +189,12 @@ function ProductTypeManager() {
             <ToastContainer />
             <div className="max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Loại Sản Phẩm</h2>
+                    <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Loại Món Ăn</h2>
                     <button
                         onClick={() => handleOpenModal('add')}
                         className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
                     >
-                        <FaPlus className="mr-2" /> Thêm loại sản phẩm
+                        <FaPlus className="mr-2" /> Thêm loại món ăn
                     </button>
                 </div>
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -203,7 +203,7 @@ function ProductTypeManager() {
                             <thead>
                                 <tr className="bg-indigo-100 text-indigo-900">
                                     <th className="p-4 text-left font-semibold">#</th>
-                                    <th className="p-4 text-left font-semibold">Tên</th>
+                                    <th className="p-4 text-left font-semibold">Tên loại món ăn</th>
                                     <th className="p-4 text-left font-semibold">Thao tác</th>
                                 </tr>
                             </thead>
@@ -211,7 +211,7 @@ function ProductTypeManager() {
                                 {productTypes.length === 0 ? (
                                     <tr>
                                         <td colSpan="3" className="text-center text-gray-500 py-6">
-                                            Không có loại sản phẩm nào
+                                            Không có loại món ăn nào
                                         </td>
                                     </tr>
                                 ) : (
@@ -244,12 +244,12 @@ function ProductTypeManager() {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl backdrop-blur-lg">
                             <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                                {modalType === 'add' ? 'Thêm loại sản phẩm' : 'Chỉnh sửa loại sản phẩm'}
+                                {modalType === 'add' ? 'Thêm loại món ăn' : 'Chỉnh sửa loại món ăn'}
                             </h3>
                             {error && <div className="text-red-500 mb-4 text-center bg-red-50 p-3 rounded-lg">{error}</div>}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại sản phẩm *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tên loại món ăn *</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -257,7 +257,7 @@ function ProductTypeManager() {
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
                                         required
-                                        placeholder="Nhập tên loại sản phẩm"
+                                        placeholder="Nhập tên loại món ăn"
                                     />
                                 </div>
                                 <div className="flex justify-end space-x-3">

@@ -29,6 +29,8 @@ function ProductManager() {
     const [imageToShow, setImageToShow] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 7; // 7 records per page
 
     const token = localStorage.getItem('token');
     const baseImagePath = 'http://localhost:5173/images/Product/';
@@ -159,7 +161,7 @@ function ProductManager() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || !form.originalPrice || !form.productTypeId || !form.status) {
-            setError('Vui lòng nhập đầy đủ thông tin bắt buộc (tên, giá gốc, loại sản phẩm, trạng thái).');
+            setError('Vui lòng nhập đầy đủ thông tin bắt buộc (tên, giá gốc, loại món ăn, trạng thái).');
             return;
         }
         const originalPrice = parseFloat(form.originalPrice);
@@ -227,7 +229,7 @@ function ProductManager() {
                     categoryId: newProduct.categoryId,
                     categoryName: newProduct.categoryName || '',
                 }]);
-                toast.success('Thêm sản phẩm thành công!', {
+                toast.success('Thêm món ăn thành công!', {
                     position: 'top-right',
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -254,7 +256,7 @@ function ProductManager() {
                         categoryName: updatedProduct.categoryName || '',
                     } : p
                 ));
-                toast.success('Cập nhật sản phẩm thành công!', {
+                toast.success('Cập nhật món ăn thành công!', {
                     position: 'top-right',
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -265,9 +267,10 @@ function ProductManager() {
                 });
             }
             handleCloseModal();
+            setCurrentPage(1); // Reset to first page after adding/editing
         } catch (err) {
-            setError(err.message || 'Không thể lưu sản phẩm.');
-            toast.error(err.message || 'Không thể lưu sản phẩm.', {
+            setError(err.message || 'Không thể lưu món ăn.');
+            toast.error(err.message || 'Không thể lưu món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -288,8 +291,8 @@ function ProductManager() {
         }
 
         const confirmResult = await Swal.fire({
-            title: 'Xác nhận xóa sản phẩm',
-            text: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+            title: 'Xác nhận xóa món ăn',
+            text: 'Bạn có chắc chắn muốn xóa món ăn này?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444', // Red-500
@@ -303,7 +306,7 @@ function ProductManager() {
         try {
             await deleteProduct(token, id);
             setProducts(products.filter(p => p.id !== id));
-            toast.success('Xóa sản phẩm thành công!', {
+            toast.success('Xóa món ăn thành công!', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -313,9 +316,13 @@ function ProductManager() {
                 theme: 'light',
             });
             setError(null);
+            // Adjust current page if necessary
+            if (currentProducts.length === 1 && currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+            }
         } catch (err) {
-            setError(err.message || 'Không thể xóa sản phẩm.');
-            toast.error(err.message || 'Không thể xóa sản phẩm.', {
+            setError(err.message || 'Không thể xóa món ăn.');
+            toast.error(err.message || 'Không thể xóa món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -353,7 +360,7 @@ function ProductManager() {
             }));
             setProducts(enrichedProducts);
             setError(null);
-            toast.success('Tìm kiếm sản phẩm thành công!', {
+            toast.success('Tìm kiếm món ăn thành công!', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -362,9 +369,10 @@ function ProductManager() {
                 draggable: true,
                 theme: 'light',
             });
+            setCurrentPage(1); // Reset to first page after search
         } catch (err) {
-            setError(err.message || 'Không thể tìm kiếm sản phẩm.');
-            toast.error(err.message || 'Không thể tìm kiếm sản phẩm.', {
+            setError(err.message || 'Không thể tìm kiếm món ăn.');
+            toast.error(err.message || 'Không thể tìm kiếm món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -403,7 +411,7 @@ function ProductManager() {
             }));
             setProducts(enrichedProducts);
             setError(null);
-            toast.success('Đã xóa bộ lọc và tải lại danh sách sản phẩm!', {
+            toast.success('Đã xóa bộ lọc và tải lại danh sách món ăn', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -412,9 +420,10 @@ function ProductManager() {
                 draggable: true,
                 theme: 'light',
             });
+            setCurrentPage(1); // Reset to first page after clearing filter
         } catch (err) {
-            setError(err.message || 'Không thể tải danh sách sản phẩm.');
-            toast.error(err.message || 'Không thể tải danh sách sản phẩm.', {
+            setError(err.message || 'Không thể tải danh sách món ăn.');
+            toast.error(err.message || 'Không thể tải danh sách món ăn.', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -437,6 +446,16 @@ function ProductManager() {
         }
     };
 
+    // Pagination logic
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(products.length / productsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     if (loading) return <div className="flex items-center justify-center min-h-screen text-gray-600">Đang tải...</div>;
     if (error) return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
 
@@ -444,14 +463,14 @@ function ProductManager() {
         <div className="container mx-auto p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
             <ToastContainer />
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Sản phẩm</h2>
+                <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">Quản lý Thực Đơn</h2>
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative w-full md:w-80">
                         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                         <input
                             type="text"
                             className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="Tìm kiếm theo tên sản phẩm..."
+                            placeholder="Tìm kiếm theo tên món ăn..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -467,7 +486,7 @@ function ProductManager() {
                         className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
                         onClick={() => handleOpenModal('add')}
                     >
-                        <FaPlus className="mr-2" /> Thêm sản phẩm
+                        <FaPlus className="mr-2" /> Thêm món ăn
                     </button>
                 </div>
             </div>
@@ -479,9 +498,9 @@ function ProductManager() {
                             <tr className="bg-indigo-100 text-indigo-900">
                                 <th className="p-4 text-left font-semibold">#</th>
                                 <th className="p-4 text-left font-semibold">Hình ảnh</th>
-                                <th className="p-4 text-left font-semibold">Tên sản phẩm</th>
-                                <th className="p-4 text-left font-semibold">Loại sản phẩm</th>
-                                <th className="p-4 text-left font-semibold">Danh mục</th>
+                                <th className="p-4 text-left font-semibold">Tên món ăn</th>
+                                <th className="p-4 text-left font-semibold">Loại món ăn</th>
+                                <th className="p-4 text-left font-semibold">Danh mục món ăn</th>
                                 <th className="p-4 text-left font-semibold">Giá gốc</th>
                                 <th className="p-4 text-left font-semibold">Giá khuyến mãi</th>
                                 <th className="p-4 text-left font-semibold">Giảm giá</th>
@@ -490,16 +509,16 @@ function ProductManager() {
                             </tr>
                         </thead>
                         <tbody>
-                            {products.length === 0 ? (
+                            {currentProducts.length === 0 ? (
                                 <tr>
                                     <td colSpan="10" className="text-center text-gray-500 py-6">
-                                        Không có sản phẩm phù hợp
+                                        Không có món ăn phù hợp
                                     </td>
                                 </tr>
                             ) : (
-                                products.map((p, idx) => (
+                                currentProducts.map((p, idx) => (
                                     <tr key={p.id} className="hover:bg-gray-50 transition-all duration-200">
-                                        <td className="p-4 border-t border-gray-200">{idx + 1}</td>
+                                        <td className="p-4 border-t border-gray-200">{idx + 1 + (currentPage - 1) * productsPerPage}</td>
                                         <td className="p-4 border-t border-gray-200">
                                             <img
                                                 src={p.img}
@@ -546,6 +565,34 @@ function ProductManager() {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination */}
+                {products.length > productsPerPage && (
+                    <div className="flex justify-center items-center gap-2 py-4">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Previous
+                        </button>
+                        {[...Array(totalPages).keys()].map((page) => (
+                            <button
+                                key={page + 1}
+                                onClick={() => handlePageChange(page + 1)}
+                                className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === page + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                {page + 1}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Modal xem ảnh lớn */}
@@ -577,7 +624,7 @@ function ProductManager() {
                         <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Tên sản phẩm *</label>
+                                    <label className="block text-sm font-medium text-gray-700">Tên món ăn *</label>
                                     <input
                                         type="text"
                                         name="name"
@@ -585,7 +632,7 @@ function ProductManager() {
                                         value={form.name}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Nhập tên sản phẩm"
+                                        placeholder="Nhập tên món ăn"
                                     />
                                 </div>
                                 <div>
@@ -614,7 +661,7 @@ function ProductManager() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Loại sản phẩm *</label>
+                                    <label className="block text-sm font-medium text-gray-700">Loại món ăn *</label>
                                     <select
                                         name="productTypeId"
                                         className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
@@ -622,7 +669,7 @@ function ProductManager() {
                                         onChange={handleChange}
                                         required
                                     >
-                                        <option value="">Chọn loại sản phẩm</option>
+                                        <option value="">Chọn loại món ăn</option>
                                         {productTypes.map(pt => (
                                             <option key={pt.id} value={pt.id}>{pt.name}</option>
                                         ))}
@@ -643,7 +690,7 @@ function ProductManager() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Danh mục</label>
+                                    <label className="block text-sm font-medium text-gray-700">Danh mục món ăn</label>
                                     <select
                                         name="categoryId"
                                         className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
