@@ -101,6 +101,20 @@ export const confirmBooking = async (token, bookingId) => {
     }
 };
 
+export const cancelBookingByAdmin = async (token, bookingId) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/cancel/${bookingId}`, null, {
+            headers: getAuthHeaders(token),
+            timeout: 5000,
+        });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Lỗi không xác định';
+        console.error('Lỗi khi admin hủy đơn đặt bàn:', errorMessage);
+        throw new Error(errorMessage);
+    }
+};
+
 export const deleteBooking = async (token, bookingId) => {
     try {
         const response = await axios.delete(`${API_BASE_URL}/delete/${bookingId}`, {

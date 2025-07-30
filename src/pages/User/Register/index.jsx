@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { register } from '../../../services/api/authService';
+import { validateRegisterForm } from '../../../utils/formValidation';
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -32,60 +33,14 @@ function Register() {
         }
     };
 
-    const validateForm = () => {
-        const errors = {};
-
-        // Check required fields
-        if (!formData.fullname.trim()) {
-            errors.fullname = 'Họ và tên không được để trống';
-        } else if (formData.fullname.length < 2) {
-            errors.fullname = 'Họ và tên phải có ít nhất 2 ký tự';
-        }
-
-        if (!formData.email.trim()) {
-            errors.email = 'Email không được để trống';
-        } else {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
-                errors.email = 'Email không hợp lệ';
-            }
-        }
-
-        if (!formData.username.trim()) {
-            errors.username = 'Tên đăng nhập không được để trống';
-        } else if (formData.username.length < 3) {
-            errors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự';
-        }
-
-        if (!formData.password.trim()) {
-            errors.password = 'Mật khẩu không được để trống';
-        } else if (formData.password.length < 6) {
-            errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-        }
-
-        if (!formData.confirmPassword.trim()) {
-            errors.confirmPassword = 'Xác nhận mật khẩu không được để trống';
-        } else if (formData.password !== formData.confirmPassword) {
-            errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
-        }
-
-        if (!formData.address.trim()) {
-            errors.address = 'Địa chỉ không được để trống';
-        }
-
-        if (!formData.phoneNumber.trim()) {
-            errors.phoneNumber = 'Số điện thoại không được để trống';
-        } else if (!/^\+?\d{8,15}$/.test(formData.phoneNumber)) {
-            errors.phoneNumber = 'Số điện thoại không hợp lệ';
-        }
-
-        setFieldErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        const errors = validateRegisterForm(formData);
+        setFieldErrors(errors);
+
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
 
         const registerData = {
             username: formData.username.trim(),
@@ -102,7 +57,7 @@ function Register() {
             setSuccess('Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...');
             setTimeout(() => navigate('/login'), 1500);
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
@@ -151,8 +106,8 @@ function Register() {
                                 onChange={handleChange}
                                 placeholder={placeholder}
                                 className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors[id]
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             />
                             {fieldErrors[id] && (
@@ -179,8 +134,8 @@ function Register() {
                                 onChange={handleChange}
                                 placeholder="Nhập mật khẩu"
                                 className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.password
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             />
                             <button
@@ -214,8 +169,8 @@ function Register() {
                                 onChange={handleChange}
                                 placeholder="Nhập lại mật khẩu"
                                 className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.confirmPassword
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             />
                             <button
@@ -259,7 +214,7 @@ function Register() {
                                     className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
-                                    viewBox="0 0 24 24"
+                                    viewBox="0 24 24"
                                 >
                                     <circle
                                         className="opacity-25"

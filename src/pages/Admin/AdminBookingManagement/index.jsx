@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { FaCheck, FaTimes, FaTrash, FaEye, FaCheckCircle, FaBan } from 'react-icons/fa';
-import { getAllBookings, confirmBooking, cancelBooking, deleteBooking, getBookingDetails, approveCancelBooking, rejectCancelBooking } from '../../../services/api/bookingService';
+import { getAllBookings, confirmBooking, cancelBookingByAdmin, deleteBooking, getBookingDetails, approveCancelBooking, rejectCancelBooking } from '../../../services/api/bookingService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
@@ -85,10 +84,10 @@ function AdminBookingManagement() {
         }
     };
 
-    const handleCancel = async (id) => {
+    const handleCancelByAdmin = async (id) => {
         const confirmResult = await Swal.fire({
             title: 'Xác nhận hủy đơn đặt bàn',
-            text: 'Bạn có chắc muốn hủy đơn đặt bàn này?',
+            text: 'Bạn có chắc muốn hủy đơn đặt bàn này? Đơn sẽ chuyển sang trạng thái Đã hủy.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#EF4444',
@@ -100,9 +99,9 @@ function AdminBookingManagement() {
         if (!confirmResult.isConfirmed) return;
 
         try {
-            const updatedBooking = await cancelBooking(token, id);
+            const updatedBooking = await cancelBookingByAdmin(token, id);
             setBookings(bookings.map((booking) => (booking.id === id ? updatedBooking : booking)));
-            toast.success('Hủy đơn đặt bàn thành công!', {
+            toast.success('Hủy đơn đặt bàn thành thử công!', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -377,7 +376,7 @@ function AdminBookingManagement() {
                                                         <FaCheck />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleCancel(booking.id)}
+                                                        onClick={() => handleCancelByAdmin(booking.id)}
                                                         className="p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition-all duration-200"
                                                         title="Hủy đơn đặt bàn"
                                                     >

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebook, FaTwitter, FaGithub, FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
 import { login } from '../../services/api/authService';
+import { validateLoginForm } from '../../utils/formValidation';
 
 function Login() {
     const [formData, setFormData] = useState({
@@ -30,21 +31,6 @@ function Login() {
         }
     };
 
-    const validateForm = () => {
-        const errors = {};
-
-        if (!formData.username.trim()) {
-            errors.username = 'Tên đăng nhập không được để trống';
-        }
-
-        if (!formData.password.trim()) {
-            errors.password = 'Mật khẩu không được để trống';
-        }
-
-        setFieldErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
     // Helper function to decode JWT token
     const decodeJwt = (token) => {
         try {
@@ -64,7 +50,12 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        const errors = validateLoginForm(formData);
+        setFieldErrors(errors);
+
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
 
         setLoading(true);
         setError('');
@@ -76,7 +67,7 @@ function Login() {
 
             const token = response.token;
             if (!token) {
-                throw new Error('No token received');
+                throw new Error('Không nhận được token');
             }
             localStorage.setItem('token', token);
 
@@ -92,7 +83,7 @@ function Login() {
                 }
             }, 1000);
         } catch (err) {
-            setError(err);
+            setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
             setSuccess('');
         } finally {
             setLoading(false);
@@ -137,8 +128,8 @@ function Login() {
                                 onChange={handleChange}
                                 placeholder="Nhập tên đăng nhập"
                                 className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.username
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                 disabled={loading}
                             />
@@ -169,8 +160,8 @@ function Login() {
                                 onChange={handleChange}
                                 placeholder="Nhập mật khẩu"
                                 className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white ${fieldErrors.password
-                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                 disabled={loading}
                             />
