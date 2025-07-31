@@ -544,25 +544,24 @@ function AdminDashboard() {
                             ) : foodProductType.length > 0 ? (
                                 <>
                                     <div className="flex justify-center mb-4">
-                                        <ResponsiveContainer width={200} height={200}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={foodProductType}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={40}
-                                                    outerRadius={80}
-                                                    paddingAngle={5}
-                                                    dataKey="value"
-                                                >
-                                                    {foodProductType.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip />
-                                            </PieChart>
-                                        </ResponsiveContainer>
+                                        <PieChart width={200} height={200}>
+                                            <Pie
+                                                data={foodProductType}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={40}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {foodProductType.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
                                     </div>
+
                                     <div className="space-y-2">
                                         {foodProductType.map((item, index) => (
                                             <div key={item.name} className="flex items-center justify-between">

@@ -166,7 +166,7 @@ function AdminOrderDetail() {
             <ToastContainer />
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="p-6 bg-indigo-100 text-indigo-900 flex justify-between items-center">
-                    <h1 className="text-2xl font-extrabold tracking-tight">Chi Tiết Đơn Hàng #{currentOrder.id}</h1>
+                    <h1 className="text-2xl font-extrabold tracking-tight">Chi Tiết Đơn Hàng</h1>
                     <button
                         onClick={() => navigate('/admin/orders')}
                         className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 font-medium"
