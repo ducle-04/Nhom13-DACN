@@ -19,11 +19,6 @@ const BestSellingProducts = () => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
 
-    const sectionVariants = {
-        hidden: { opacity: 0, y: 50 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } },
-    };
-
     // Component đánh giá sao
     const StarRating = ({ rating = 4.5, reviewCount = 0 }) => {
         const fullStars = Math.floor(rating);
@@ -33,7 +28,6 @@ const BestSellingProducts = () => {
         return (
             <div className="flex items-center space-x-1 mb-4">
                 <div className="flex items-center">
-                    {/* Full stars */}
                     {[...Array(fullStars)].map((_, index) => (
                         <motion.div
                             key={`full-${index}`}
@@ -43,8 +37,6 @@ const BestSellingProducts = () => {
                             <Star className="w-4 h-4 text-yellow-400 fill-current" />
                         </motion.div>
                     ))}
-
-                    {/* Half star */}
                     {hasHalfStar && (
                         <motion.div
                             whileHover={{ scale: 1.2, rotate: 5 }}
@@ -57,11 +49,9 @@ const BestSellingProducts = () => {
                             </div>
                         </motion.div>
                     )}
-
-                    {/* Empty stars */}
                     {[...Array(emptyStars)].map((_, index) => (
                         <motion.div
-                            key={`empty-${index}`} // Sửa lỗi: Sử dụng template string hợp lệ
+                            key={`empty-${index}`}
                             whileHover={{ scale: 1.2, rotate: 5 }}
                             transition={{ duration: 0.2 }}
                         >
@@ -69,7 +59,6 @@ const BestSellingProducts = () => {
                         </motion.div>
                     ))}
                 </div>
-
                 <div className="flex items-center space-x-2 ml-2">
                     <motion.p
                         className="text-yellow-600 font-semibold text-sm"
@@ -186,7 +175,7 @@ const BestSellingProducts = () => {
                         <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-amber-400 rounded-full animate-spin animate-reverse"></div>
                     </div>
                     <div className="backdrop-blur-sm bg-white/20 rounded-2xl p-6 shadow-xl">
-                        <p className="text-slate-700 text-xl font-medium">Đang tải sản phẩm bán chạy...</p>
+                        <p className="text-slate-700 text-xl font-medium">Đang tải sản phẩm...</p>
                         <p className="text-slate-500 text-sm mt-2">Vui lòng chờ trong giây lát</p>
                     </div>
                 </motion.div>
@@ -220,13 +209,15 @@ const BestSellingProducts = () => {
     }
 
     return (
-        <motion.section
-            className="py-20 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 relative overflow-hidden"
-            id="best-selling-products"
+        <motion.div
+            className="relative z-10 max-w-7xl mx-auto px-6"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
-            variants={sectionVariants}
+            variants={{
+                hidden: { opacity: 0, y: 50 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' } }
+            }}
         >
             <ToastContainer position="top-right" autoClose={3000} />
             <AnimatePresence>
@@ -240,186 +231,132 @@ const BestSellingProducts = () => {
                 />
             </AnimatePresence>
             <Cart isOpen={isCartOpen} onClose={toggleCart} />
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/20 to-amber-200/20 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-yellow-200/20 rounded-full blur-3xl"></div>
-            </div>
-
-            <div className="relative z-10 max-w-7xl mx-auto px-6">
+            {optimizedProducts.length === 0 ? (
                 <motion.div
-                    className="text-center mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    className="text-center py-20"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <div className="flex items-center justify-center gap-4 mb-8">
-                        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
-                        <span className="text-orange-600 font-semibold text-sm tracking-[0.3em] uppercase px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-orange-100">
-                            Bán chạy nhất
-                        </span>
-                        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                    <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                        <ShoppingCart className="w-16 h-16 text-gray-400" />
                     </div>
-                    <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-8 font-montserrat tracking-tight leading-tight">
-                        Sản Phẩm Bán Chạy FoodieHub
-                    </h2>
-                    <div className="max-w-4xl mx-auto">
-                        <p className="text-slate-700 text-2xl leading-relaxed mb-6">
-                            Khám phá những món ăn được yêu thích nhất tại FoodieHub
+                    <div className="backdrop-blur-sm bg-white/60 rounded-3xl p-10 max-w-md mx-auto shadow-xl border border-gray-100">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chưa có sản phẩm</h3>
+                        <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+                            Hiện tại chưa có sản phẩm bán chạy nào. Hãy quay lại sau nhé!
                         </p>
-                        <p className="text-slate-500 text-lg leading-relaxed">
-                            Hương vị chuẩn ngon, chất lượng đảm bảo – đặt ngay để thưởng thức!
-                        </p>
+                        <Link
+                            to="/menu"
+                            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg transform hover:scale-105 group"
+                        >
+                            <ShoppingCart className="w-5 h-5 mr-2" />
+                            Xem thực đơn
+                            <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                        </Link>
                     </div>
                 </motion.div>
-
-                {optimizedProducts.length === 0 ? (
-                    <motion.div
-                        className="text-center py-20"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            <ShoppingCart className="w-16 h-16 text-gray-400" />
-                        </div>
-                        <div className="backdrop-blur-sm bg-white/60 rounded-3xl p-10 max-w-md mx-auto shadow-xl border border-gray-100">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chưa có sản phẩm bán chạy</h3>
-                            <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                                Hiện tại chưa có sản phẩm bán chạy nào. Hãy quay lại sau nhé!
-                            </p>
-                            <Link
-                                to="/menu"
-                                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg transform hover:scale-105 group"
-                            >
-                                <ShoppingCart className="w-5 h-5 mr-2" />
-                                Xem thực đơn
-                                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-                            </Link>
-                        </div>
-                    </motion.div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                        {optimizedProducts.map((product, index) => (
-                            <motion.div
-                                key={product.id}
-                                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ease-in-out border border-white/20 hover:shadow-2xl hover:shadow-orange-200/40"
-                                whileHover={{ scale: 1.02, y: -12 }}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: index * 0.1 }}
-                            >
-                                {/* Hiệu ứng ánh sáng khi hover */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/10 to-amber-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                {/* Hiệu ứng glow border */}
-                                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-400/20 to-amber-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-
-                                <div className="relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-
-                                    {/* Hiệu ứng shimmer overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
-
-                                    {/* Badge giảm giá với hiệu ứng */}
-                                    {product.discount && (
-                                        <div className="absolute top-4 right-4 z-10">
-                                            <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300">
-                                                {product.discount}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <motion.img
-                                        src={product.img}
-                                        alt={product.name}
-                                        className="w-full h-56 object-cover transition-all duration-700 ease-in-out group-hover:scale-110 group-hover:brightness-110"
-                                        loading="lazy"
-                                        onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
-                                    />
-
-                                    {/* Gradient overlay khi hover */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                </div>
-
-                                <div className="relative p-8 group-hover:bg-gradient-to-br group-hover:from-white/90 group-hover:to-orange-50/50 transition-all duration-300">
-                                    <motion.h3
-                                        className="text-2xl font-bold text-gray-900 mb-4 transition-all duration-300 group-hover:text-orange-600 line-clamp-2"
-                                        whileHover={{ x: 4 }}
-                                    >
-                                        {product.name}
-                                    </motion.h3>
-
-                                    {/* Phần đánh giá sao */}
-                                    <StarRating
-                                        rating={product.rating}
-                                        reviewCount={product.reviewCount}
-                                    />
-
-                                    <div className="flex items-center space-x-3 mb-4">
-                                        <motion.p
-                                            className="text-gray-600 line-through text-lg group-hover:text-gray-500 transition-colors duration-300"
-                                            whileHover={{ scale: 0.95 }}
-                                        >
-                                            {product.originalPrice.toLocaleString('vi-VN')} VNĐ
-                                        </motion.p>
-                                        <motion.p
-                                            className="text-orange-600 font-bold text-xl group-hover:text-orange-500 transition-colors duration-300"
-                                            whileHover={{ scale: 1.05 }}
-                                        >
-                                            {product.discountedPrice.toLocaleString('vi-VN')} VNĐ
-                                        </motion.p>
-                                    </div>
-
-                                    {product.discount && (
-                                        <motion.p
-                                            className="text-sm text-orange-600 font-semibold mb-6 group-hover:text-orange-500 transition-colors duration-300"
-                                            whileHover={{ x: 2 }}
-                                        >
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {optimizedProducts.map((product, index) => (
+                        <motion.div
+                            key={product.id}
+                            className="group relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden transition-all duration-500 ease-in-out border border-white/20 hover:shadow-2xl hover:shadow-orange-200/40"
+                            whileHover={{ scale: 1.02, y: -12 }}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/0 via-orange-400/10 to-amber-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-400/20 to-amber-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
+                            <div className="relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+                                {product.discount && (
+                                    <div className="absolute top-4 right-4 z-10">
+                                        <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg transform rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300">
                                             {product.discount}
-                                        </motion.p>
-                                    )}
-
-                                    <motion.button
-                                        onClick={() => openProductModal(product)}
-                                        className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg group-hover:shadow-xl transform hover:scale-105 group/button overflow-hidden"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        {/* Hiệu ứng wave khi hover button */}
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover/button:translate-x-full transition-transform duration-500"></div>
-
-                                        <div className="relative flex items-center">
-                                            <motion.div
-                                                animate={{ rotate: [0, 360] }}
-                                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                                className="group-hover/button:animate-spin"
-                                            >
-                                                <ShoppingCart className="w-5 h-5 mr-2" />
-                                            </motion.div>
-                                            Đặt ngay
-                                            <motion.div
-                                                animate={{ x: [0, 4, 0] }}
-                                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                                className="group-hover/button:animate-bounce"
-                                            >
-                                                <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/button:translate-x-1" />
-                                            </motion.div>
                                         </div>
-                                    </motion.button>
+                                    </div>
+                                )}
+                                <motion.img
+                                    src={product.img}
+                                    alt={product.name}
+                                    className="w-full h-56 object-cover transition-all duration-700 ease-in-out group-hover:scale-110 group-hover:brightness-110"
+                                    loading="lazy"
+                                    onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            </div>
+                            <div className="relative p-8 group-hover:bg-gradient-to-br group-hover:from-white/90 group-hover:to-orange-50/50 transition-all duration-300">
+                                <motion.h3
+                                    className="text-2xl font-bold text-gray-900 mb-4 transition-all duration-300 group-hover:text-orange-600 line-clamp-2"
+                                    whileHover={{ x: 4 }}
+                                >
+                                    {product.name}
+                                </motion.h3>
+                                <StarRating
+                                    rating={product.rating}
+                                    reviewCount={product.reviewCount}
+                                />
+                                <div className="flex items-center space-x-3 mb-4">
+                                    <motion.p
+                                        className="text-gray-600 line-through text-lg group-hover:text-gray-500 transition-colors duration-300"
+                                        whileHover={{ scale: 0.95 }}
+                                    >
+                                        {product.originalPrice.toLocaleString('vi-VN')} VNĐ
+                                    </motion.p>
+                                    <motion.p
+                                        className="text-orange-600 font-bold text-xl group-hover:text-orange-500 transition-colors duration-300"
+                                        whileHover={{ scale: 1.05 }}
+                                    >
+                                        {product.discountedPrice.toLocaleString('vi-VN')} VNĐ
+                                    </motion.p>
                                 </div>
-
-                                {/* Hiệu ứng particles khi hover */}
-                                <div className="absolute inset-0 pointer-events-none">
-                                    <div className="absolute top-10 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-100"></div>
-                                    <div className="absolute top-20 right-16 w-1 h-1 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-200"></div>
-                                    <div className="absolute bottom-16 left-20 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-300"></div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </motion.section>
+                                {product.discount && (
+                                    <motion.p
+                                        className="text-sm text-orange-600 font-semibold mb-6 group-hover:text-orange-500 transition-colors duration-300"
+                                        whileHover={{ x: 2 }}
+                                    >
+                                        {product.discount}
+                                    </motion.p>
+                                )}
+                                <motion.button
+                                    onClick={() => openProductModal(product)}
+                                    className="relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full font-semibold transition-all duration-300 hover:from-orange-600 hover:to-amber-700 hover:shadow-lg group-hover:shadow-xl transform hover:scale-105 group/button overflow-hidden"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -translate-x-full group-hover/button:translate-x-full transition-transform duration-500"></div>
+                                    <div className="relative flex items-center">
+                                        <motion.div
+                                            animate={{ rotate: [0, 360] }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                            className="group-hover/button:animate-spin"
+                                        >
+                                            <ShoppingCart className="w-5 h-5 mr-2" />
+                                        </motion.div>
+                                        Đặt ngay
+                                        <motion.div
+                                            animate={{ x: [0, 4, 0] }}
+                                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                            className="group-hover/button:animate-bounce"
+                                        >
+                                            <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover/button:translate-x-1" />
+                                        </motion.div>
+                                    </div>
+                                </motion.button>
+                            </div>
+                            <div className="absolute inset-0 pointer-events-none">
+                                <div className="absolute top-10 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-100"></div>
+                                <div className="absolute top-20 right-16 w-1 h-1 bg-amber-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-200"></div>
+                                <div className="absolute bottom-16 left-20 w-1.5 h-1.5 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300 delay-300"></div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </motion.div>
     );
 };
 

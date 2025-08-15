@@ -12,7 +12,6 @@ import NewProducts from '../../../components/Layout/DefautLayout/UserLayout/Home
 import BestSellingProducts from '../../../components/Layout/DefautLayout/UserLayout/Home/BestSellingProducts';
 import Testimonials from '../../../components/Layout/DefautLayout/UserLayout/Home/Testimonials';
 
-
 function Home() {
     const sliderImages = [
         { src: banner1Img },
@@ -37,6 +36,7 @@ function Home() {
     };
 
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [activeCategory, setActiveCategory] = useState('featured');
     const location = useLocation();
 
     useEffect(() => {
@@ -82,13 +82,9 @@ function Home() {
         <div className="w-full">
             {/* Slider */}
             <div className="relative h-[500px] lg:h-[600px] overflow-hidden rounded-3xl shadow-2xl group">
-                {/* Enhanced background with multiple gradients */}
                 <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30 z-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10"></div>
-
-                {/* Animated border gradient - more vibrant */}
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-500/40 via-amber-500/40 to-yellow-500/40 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-sm animate-pulse"></div>
-
                 <AnimatePresence mode="wait">
                     {sliderImages.map((slide, index) => (
                         index === currentSlide && (
@@ -101,13 +97,9 @@ function Home() {
                                 exit="exit"
                             >
                                 <Link to="/menu" className="block w-full h-full relative group/image">
-                                    {/* Multi-layer overlay for depth */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 z-20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-500"></div>
                                     <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-amber-500/10 z-20 opacity-0 group-hover/image:opacity-100 transition-opacity duration-700"></div>
-
-                                    {/* Enhanced shimmer effect */}
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover/image:translate-x-full transition-transform duration-1200 ease-out z-30"></div>
-
                                     <motion.img
                                         src={slide.src}
                                         alt={`Slide ${index + 1}`}
@@ -116,8 +108,6 @@ function Home() {
                                         whileHover={{ scale: 1.05 }}
                                         transition={{ duration: 0.7 }}
                                     />
-
-                                    {/* More floating particles with varied animations */}
                                     <div className="absolute inset-0 pointer-events-none z-20">
                                         <motion.div
                                             className="absolute top-20 left-20 w-4 h-4 bg-orange-400/70 rounded-full opacity-0 group-hover/image:opacity-100"
@@ -185,8 +175,6 @@ function Home() {
                         )
                     ))}
                 </AnimatePresence>
-
-                {/* Enhanced Navigation Buttons with premium styling */}
                 <motion.button
                     onClick={goToPrevSlide}
                     className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-md p-4 rounded-full shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 z-30 group/btn border border-white/30"
@@ -204,7 +192,6 @@ function Home() {
                         <ChevronLeft className="w-8 h-8 text-gray-900 relative z-10 drop-shadow-sm" />
                     </motion.div>
                 </motion.button>
-
                 <motion.button
                     onClick={goToNextSlide}
                     className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-md p-4 rounded-full shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 z-30 group/btn border border-white/30"
@@ -222,8 +209,6 @@ function Home() {
                         <ChevronRight className="w-8 h-8 text-gray-900 relative z-10 drop-shadow-sm" />
                     </motion.div>
                 </motion.button>
-
-                {/* Enhanced Dots Navigation with premium styling */}
                 <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-30">
                     <div className="bg-black/30 backdrop-blur-md rounded-full px-8 py-4 border border-white/30 shadow-xl">
                         <div className="flex space-x-4">
@@ -241,7 +226,6 @@ function Home() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3, delay: index * 0.1 }}
                                 >
-                                    {/* Active dot enhanced glow effect */}
                                     {currentSlide === index && (
                                         <motion.div
                                             className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full blur-md opacity-60"
@@ -256,8 +240,6 @@ function Home() {
                                             }}
                                         />
                                     )}
-
-                                    {/* Hover ripple effect */}
                                     <motion.div
                                         className="absolute inset-0 bg-white/40 rounded-full opacity-0"
                                         whileHover={{
@@ -271,8 +253,6 @@ function Home() {
                         </div>
                     </div>
                 </div>
-
-                {/* Enhanced progress bar with gradient */}
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/30 z-30">
                     <motion.div
                         className="h-full bg-gradient-to-r from-orange-400 via-amber-500 to-yellow-400 shadow-lg"
@@ -282,10 +262,7 @@ function Home() {
                     />
                     <div className="absolute top-0 left-0 right-0 h-full bg-gradient-to-r from-orange-400/20 via-amber-500/20 to-yellow-400/20 blur-sm"></div>
                 </div>
-
-                {/* Enhanced decorative elements */}
                 <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10">
-                    {/* Corner decorations with animation */}
                     <motion.div
                         className="absolute top-0 left-0 w-20 h-20 border-l-4 border-t-4 border-orange-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                         animate={{
@@ -315,8 +292,6 @@ function Home() {
                         transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
                     />
                 </div>
-
-                {/* Enhanced floating light effects */}
                 <div className="absolute inset-0 pointer-events-none z-20">
                     <motion.div
                         className="absolute top-1/4 left-1/4 w-40 h-40 bg-orange-400/15 rounded-full blur-xl opacity-0 group-hover:opacity-100"
@@ -380,7 +355,6 @@ function Home() {
                     <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full blur-3xl animate-pulse delay-500"></div>
                 </div>
-
                 <div className="w-[90%] mx-auto px-4 relative z-10">
                     <motion.div
                         className="text-center mb-16"
@@ -400,7 +374,6 @@ function Home() {
                             Khám phá những ưu đãi độc quyền được thiết kế riêng cho bạn
                         </p>
                     </motion.div>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                         {vouchers.map((voucher, index) => (
                             <motion.div
@@ -464,7 +437,6 @@ function Home() {
                             </motion.div>
                         ))}
                     </div>
-
                     <motion.div
                         className="text-center mt-16"
                         initial={{ opacity: 0 }}
@@ -504,11 +476,75 @@ function Home() {
                 />
             </motion.section>
 
-            {/* Sản phẩm nổi bật */}
-            <FeaturedProducts />
-
-            {/* Sản phẩm mới */}
-            <NewProducts />
+            {/* Product Section */}
+            <motion.section
+                className="py-20 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 relative overflow-hidden"
+                id="products"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={sectionVariants}
+            >
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/20 to-amber-200/20 rounded-full blur-3xl"></div>
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-yellow-200/20 rounded-full blur-3xl"></div>
+                </div>
+                <div className="relative z-10 max-w-7xl mx-auto px-6">
+                    <motion.div
+                        className="text-center mb-12"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <div className="flex items-center justify-center gap-4 mb-6">
+                            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                            <span className="text-orange-600 font-semibold text-sm tracking-[0.2em] uppercase px-3 py-1 bg-white/50 backdrop-blur-sm rounded-full border border-orange-100">
+                                Thực Đơn Hot
+                            </span>
+                            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+                        </div>
+                        <h2 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 mb-8 font-montserrat tracking-tight leading-tight">
+                            Món Hot & Đỉnh
+                        </h2>
+                        <div className="max-w-4xl mx-auto">
+                            <p className="text-slate-700 text-xl leading-relaxed md-6">
+                                Thưởng thức các món ăn mới nhất và được yêu thích nhất tại FoodieHub. Đặt ngay!
+                            </p>
+                        </div>
+                        <div className="flex justify-center gap-4 mt-3">
+                            {['featured', 'new', 'best-selling'].map((category) => (
+                                <motion.button
+                                    key={category}
+                                    onClick={() => setActiveCategory(category)}
+                                    className={`px-6 py-3 rounded-full font-semibold text-base transition-all duration-300 ${activeCategory === category
+                                        ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-lg'
+                                        : 'bg-white/80 backdrop-blur-sm border border-orange-200 text-slate-700 hover:bg-white'
+                                        }`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    {category === 'featured' && 'Thực đơn nổi bật'}
+                                    {category === 'new' && 'Thực đơn mới'}
+                                    {category === 'best-selling' && 'Thực đơn bán chạy'}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </motion.div>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeCategory}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -30 }}
+                            transition={{ duration: 0.6 }}
+                        >
+                            {activeCategory === 'featured' && <FeaturedProducts />}
+                            {activeCategory === 'new' && <NewProducts />}
+                            {activeCategory === 'best-selling' && <BestSellingProducts />}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </motion.section>
 
             {/* Ưu Đãi Đặc Biệt */}
             <motion.section
@@ -534,9 +570,6 @@ function Home() {
                 </div>
             </motion.section>
 
-            {/* Sản phẩm bán chạy */}
-            <BestSellingProducts />
-
             {/* Ý kiến khách hàng */}
             <Testimonials />
 
@@ -552,10 +585,8 @@ function Home() {
                     <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500 rounded-full blur-3xl animate-pulse"></div>
                     <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
                 </div>
-
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-                        {/* Nội dung text */}
                         <motion.div
                             className="lg:col-span-3 space-y-8 text-center lg:text-left order-2 lg:order-1"
                             initial={{ opacity: 0, x: -50 }}
@@ -570,8 +601,6 @@ function Home() {
                                     Đăng ký ngay để nhận các ưu đãi, lời khuyên ẩm thực và cập nhật mới nhất từ chúng tôi.
                                 </p>
                             </div>
-
-                            {/* Form đăng ký */}
                             <div className="space-y-4">
                                 <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto lg:mx-0">
                                     <input
@@ -588,18 +617,14 @@ function Home() {
                                         Đăng ký
                                     </motion.button>
                                 </div>
-
                                 <p className="text-slate-500 text-sm max-w-lg mx-auto lg:mx-0">
                                     Bằng cách đăng ký, bạn đồng ý với điều khoản sử dụng và chính sách bảo mật của chúng tôi.
                                 </p>
                             </div>
-
-                            {/* Call to action cho app */}
                             <div className="pt-4 border-t border-orange-100">
                                 <p className="text-slate-600 text-lg leading-relaxed max-w-lg mx-auto lg:mx-0 mb-4">
                                     Có bữa ăn mơ ước của bạn trong tầm tay. Tải xuống ứng dụng.
                                 </p>
-
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                     <motion.a
                                         href="#"
@@ -617,7 +642,6 @@ function Home() {
                                             <div className="text-sm font-semibold text-slate-700">App Store</div>
                                         </div>
                                     </motion.a>
-
                                     <motion.a
                                         href="#"
                                         className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-orange-200 rounded-xl px-6 py-3 hover:bg-white transition-all duration-300 shadow-sm"
@@ -637,8 +661,6 @@ function Home() {
                                 </div>
                             </div>
                         </motion.div>
-
-                        {/* Hình ảnh app */}
                         <motion.div
                             className="lg:col-span-2 flex justify-center lg:justify-end order-1 lg:order-2"
                             initial={{ opacity: 0, x: 50 }}
@@ -653,8 +675,6 @@ function Home() {
                                     className="relative w-80 h-96 md:w-96 md:h-[500px] lg:w-[400px] lg:h-[520px] object-cover rounded-3xl shadow-2xl transform hover:scale-105 transition-transform duration-500"
                                     loading="lazy"
                                 />
-
-                                {/* Floating elements */}
                                 <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                                     <span className="text-white text-3xl">🍕</span>
                                 </div>
