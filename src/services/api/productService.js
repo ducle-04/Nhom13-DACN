@@ -92,7 +92,7 @@ export const getBestSellingProducts = async () => {
             timeout: 5000,
         });
         const rawProducts = Array.isArray(response.data) ? response.data : response.data.products || [];
-        return rawProducts.filter(product => product.categoryName?.toLowerCase() === 'bestseller');
+        return rawProducts.filter(product => product.categoryName?.toLowerCase() === 'bán chạy');
     } catch (error) {
         if (error.response?.status === 401) {
             throw new Error('Vui lòng đăng nhập để xem sản phẩm bán chạy.');

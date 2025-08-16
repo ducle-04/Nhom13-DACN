@@ -102,7 +102,7 @@ const NewProducts = () => {
                     timeout: 5000,
                 });
                 const fetchedProducts = Array.isArray(response.data) ? response.data : response.data.products || [];
-                const newProducts = fetchedProducts.filter(product => product.categoryName?.toLowerCase() === 'new');
+                const newProducts = fetchedProducts.filter(product => product.categoryName?.toLowerCase() === 'mới');
                 const enrichedProducts = newProducts.map(product => {
                     const ratingData = generateRandomRating();
                     return {

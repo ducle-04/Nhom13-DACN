@@ -116,7 +116,7 @@ const Promotions = () => {
                 const products = Array.isArray(response.data) ? response.data : response.data.products || [];
                 // Lọc sản phẩm thuộc danh mục "Promotions"
                 const filteredProducts = products
-                    .filter(product => product.categoryName?.toLowerCase() === 'promotions')
+                    .filter(product => product.categoryName?.toLowerCase() === 'khuyến mãi')
                     .map(product => {
                         const ratingData = generateRandomRating();
                         return {

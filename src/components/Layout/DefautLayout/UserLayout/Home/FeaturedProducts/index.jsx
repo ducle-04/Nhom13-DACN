@@ -102,7 +102,7 @@ const FeaturedProducts = () => {
                     timeout: 5000,
                 });
                 const fetchedProducts = Array.isArray(response.data) ? response.data : response.data.products || [];
-                const featuredProducts = fetchedProducts.filter(product => product.categoryName?.toLowerCase() === 'featured');
+                const featuredProducts = fetchedProducts.filter(product => product.categoryName?.toLowerCase() === 'nổi bật');
                 const enrichedProducts = featuredProducts.map(product => {
                     const ratingData = generateRandomRating();
                     return {
