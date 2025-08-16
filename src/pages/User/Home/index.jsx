@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import banner1Img from '../../../assets/images/product/garan-1.jpg';
-import banner2Img from '../../../assets/images/product/banner-2.jpg';
-import banner3Img from '../../../assets/images/product/banner-3.jpg';
+import banner1Img from '../../../assets/images/product/banner-1.jpg';
+import banner2Img from '../../../assets/images/product/banner-4.jpg';
+import banner3Img from '../../../assets/images/product/banner-6.jpg';
 import MenuCategories from '../../../components/Layout/DefautLayout/UserLayout/Home/MenuCategories';
 import Promotions from '../../../components/Layout/DefautLayout/UserLayout/Home/Promotions';
 import FeaturedProducts from '../../../components/Layout/DefautLayout/UserLayout/Home/FeaturedProducts';
@@ -31,8 +31,13 @@ function Home() {
     ];
 
     const additionalAdvertisement = {
-        src: '/images/Product/quangcao.jpg',
+        src: '/images/Product/qc-6.jpg',
         alt: 'Quảng Cáo Khuyến Mãi',
+    };
+
+    const additionalAdvertisement2 = {
+        src: '/images/Product/qc-4.jpg',
+        alt: 'Quảng Cáo',
     };
 
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -471,7 +476,7 @@ function Home() {
                 <motion.img
                     src={additionalAdvertisement.src}
                     alt={additionalAdvertisement.alt}
-                    className="w-full h-[300px] lg:h-[400px] object-cover"
+                    className="w-full h-[400px] lg:h-[500px] object-cover"
                     loading="lazy"
                 />
             </motion.section>
@@ -572,6 +577,22 @@ function Home() {
 
             {/* Ý kiến khách hàng */}
             <Testimonials />
+
+            {/* Quảng Cáo 2 */}
+            <motion.section
+                className="py-16 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 w-full advertisement-fullwidth"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={sectionVariants}
+            >
+                <motion.img
+                    src={additionalAdvertisement2.src}
+                    alt={additionalAdvertisement2.alt}
+                    className="w-full h-[400px] lg:h-[500px] object-cover"
+                    loading="lazy"
+                />
+            </motion.section>
 
             {/* Đăng ký */}
             <motion.section
