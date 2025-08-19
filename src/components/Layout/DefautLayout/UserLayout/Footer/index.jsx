@@ -33,17 +33,11 @@ function Footer() {
     return (
         <motion.footer
             ref={footerRef}
-            className="py-12 bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 text-gray-800 border-t border-orange-100/50 relative overflow-hidden"
+            className="py-12 bg-white text-gray-800 border-t border-orange-100/50 relative"
             initial="hidden"
             animate={controls}
             variants={footerVariants}
         >
-            {/* Background decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/20 to-amber-200/20 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-yellow-200/20 rounded-full blur-3xl"></div>
-            </div>
-
             <div className="relative z-10 max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                     {/* Logo & Contact Info */}

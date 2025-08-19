@@ -4,8 +4,10 @@ import { useLocation, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Select from 'react-select';
 import { getProfile } from '../../../services/api/userService';
 import { createOrder } from '../../../services/api/orderService';
+import { getProvinces, getDistricts, getWards } from '../../../services/api/addressService';
 
 const OrderPage = () => {
     const { cartItems, totalPrice, clearCart, fetchCart, updateQuantity, removeItem, orderNow } = useCart();
@@ -18,6 +20,13 @@ const OrderPage = () => {
     const [userInfo, setUserInfo] = useState({ fullname: '', email: '', phoneNumber: '' });
     const [userLoading, setUserLoading] = useState(false);
     const [orderNowQuantity, setOrderNowQuantity] = useState(orderNowItem?.quantity || 1);
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState(null);
+    const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [selectedWard, setSelectedWard] = useState(null);
+    const [streetAddress, setStreetAddress] = useState('');
 
     const orderNowTotalPrice = orderNowItem ? orderNowItem.price * orderNowQuantity : 0;
 
@@ -47,6 +56,95 @@ const OrderPage = () => {
 
         fetchUserInfo();
     }, []);
+
+    useEffect(() => {
+        const fetchProvincesData = async () => {
+            try {
+                const provincesData = await getProvinces();
+                setProvinces(provincesData);
+            } catch (error) {
+                setError(error.message);
+                toast.error(error.message, {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'light',
+                });
+            }
+        };
+        fetchProvincesData();
+    }, []);
+
+    useEffect(() => {
+        const fetchDistrictsData = async () => {
+            if (selectedProvince) {
+                try {
+                    const districtsData = await getDistricts(selectedProvince.value);
+                    setDistricts(districtsData);
+                    setSelectedDistrict(null);
+                    setWards([]);
+                    setSelectedWard(null);
+                } catch (error) {
+                    setError(error.message);
+                    toast.error(error.message, {
+                        position: 'top-right',
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: 'light',
+                    });
+                }
+            } else {
+                setDistricts([]);
+                setSelectedDistrict(null);
+                setWards([]);
+                setSelectedWard(null);
+            }
+        };
+        fetchDistrictsData();
+    }, [selectedProvince]);
+
+    useEffect(() => {
+        const fetchWardsData = async () => {
+            if (selectedDistrict) {
+                try {
+                    const wardsData = await getWards(selectedDistrict.value);
+                    setWards(wardsData);
+                    setSelectedWard(null);
+                } catch (error) {
+                    setError(error.message);
+                    toast.error(error.message, {
+                        position: 'top-right',
+                        autoClose: 3000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        theme: 'light',
+                    });
+                }
+            } else {
+                setWards([]);
+                setSelectedWard(null);
+            }
+        };
+        fetchWardsData();
+    }, [selectedDistrict]);
+
+    useEffect(() => {
+        const fullAddress = [
+            streetAddress,
+            selectedWard?.label,
+            selectedDistrict?.label,
+            selectedProvince?.label
+        ].filter(Boolean).join(', ');
+        setDeliveryAddress(fullAddress);
+    }, [selectedProvince, selectedDistrict, selectedWard, streetAddress]);
 
     const updateOrderNowQuantity = (delta) => {
         setOrderNowQuantity(prev => Math.max(1, prev + delta));
@@ -110,6 +208,10 @@ const OrderPage = () => {
 
                     setDeliveryAddress('');
                     setPaymentMethod('');
+                    setSelectedProvince(null);
+                    setSelectedDistrict(null);
+                    setSelectedWard(null);
+                    setStreetAddress('');
                     if (orderNowItem) setOrderNowQuantity(1);
                 } catch (error) {
                     setError(error.message);
@@ -128,6 +230,39 @@ const OrderPage = () => {
                 }
             }
         });
+    };
+
+    const customStyles = {
+        control: (provided) => ({
+            ...provided,
+            borderColor: '#e5e7eb',
+            padding: '0.25rem',
+            borderRadius: '0.5rem',
+            '&:hover': {
+                borderColor: '#818cf8',
+            },
+            boxShadow: 'none',
+            '&:focus-within': {
+                borderColor: '#4f46e5',
+                boxShadow: '0 0 0 2px rgba(79, 70, 229, 0.2)',
+            },
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#4f46e5' : state.isFocused ? '#e0e7ff' : 'white',
+            color: state.isSelected ? 'white' : '#1f2937',
+            padding: '0.75rem',
+        }),
+        menu: (provided) => ({
+            ...provided,
+            borderRadius: '0.5rem',
+            marginTop: '0.25rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            color: '#9ca3af',
+        }),
     };
 
     return (
@@ -206,13 +341,50 @@ const OrderPage = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Địa chỉ giao hàng
                                     </label>
-                                    <input
-                                        type="text"
-                                        value={deliveryAddress}
-                                        onChange={(e) => setDeliveryAddress(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-400 transition ease-in-out duration-200"
-                                        placeholder="Nhập địa chỉ giao hàng chi tiết..."
-                                    />
+                                    <div className="space-y-3">
+                                        <Select
+                                            options={provinces}
+                                            value={selectedProvince}
+                                            onChange={setSelectedProvince}
+                                            placeholder="Chọn tỉnh/thành phố..."
+                                            styles={customStyles}
+                                            isSearchable
+                                            isClearable
+                                        />
+                                        <Select
+                                            options={districts}
+                                            value={selectedDistrict}
+                                            onChange={setSelectedDistrict}
+                                            placeholder="Chọn quận/huyện..."
+                                            styles={customStyles}
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!selectedProvince}
+                                        />
+                                        <Select
+                                            options={wards}
+                                            value={selectedWard}
+                                            onChange={setSelectedWard}
+                                            placeholder="Chọn phường/xã..."
+                                            styles={customStyles}
+                                            isSearchable
+                                            isClearable
+                                            isDisabled={!selectedDistrict}
+                                        />
+                                        <input
+                                            type="text"
+                                            value={streetAddress}
+                                            onChange={(e) => setStreetAddress(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-400 transition ease-in-out duration-200"
+                                            placeholder="Nhập số nhà, tên đường..."
+                                        />
+                                        {deliveryAddress && (
+                                            <div className="text-sm text-gray-600 mt-2">
+                                                <span className="font-medium">Địa chỉ đầy đủ: </span>
+                                                {deliveryAddress}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -238,7 +410,7 @@ const OrderPage = () => {
                                 <button
                                     onClick={handleCheckout}
                                     disabled={loading}
-                                    className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 hover:shadow-md transition ease-in-out duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-900 hover:shadow-md transition ease-in-out duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading ? 'Đang xử lý...' : `Xác Nhận Đặt Hàng ${(orderNowItem ? orderNowTotalPrice : totalPrice).toLocaleString('vi-VN')} VNĐ`}
                                 </button>
